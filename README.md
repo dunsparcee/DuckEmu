@@ -1,5 +1,5 @@
-<div style="display: flex; justify-content: center;">
-    <img width="128" src="https://i.imgur.com/bcBLJ20.png" style="border-radius: 12px; align: center" alt="DuckEmu-Logo"/>
+<div align="center">
+  <img width="128" src="https://i.imgur.com/jOu6ji0.png" style="border-radius:12px">
 </div>
 
 ## Welcome to DuckEmu.
