@@ -14,8 +14,6 @@ DuckEmu is a future multiplatform GB/GBC/GBA/NDS emulator written in Kotlin.
 ### GB
 
 <img width="400" src="https://i.imgur.com/YobGKEX.png" alt="pokemon-red"/>
-<img width="400" src="https://i.imgur.com/YobGKEX.png" alt="pokemon-red"/>
-<img width="400" src="https://i.imgur.com/YobGKEX.png" alt="pokemon-red"/>
 
 ### GBC
 
