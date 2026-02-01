@@ -2,13 +2,15 @@ package io.duckemu.gbc
 
 import io.duckemu.gbc.addons.Cheat
 import io.duckemu.gbc.addons.newCheat
-import io.duckemu.gbc.audio.Speaker
 import io.duckemu.gbc.gpu.Colors
 import io.duckemu.gbc.gpu.ScreenAbstract
 import io.duckemu.gbc.gpu.ScreenImplement
 import io.duckemu.gbc.gpu.ScreenListener
-import java.util.*
-
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 
 class GameBoy(
     var gbcFeatures: Boolean,
@@ -16,7 +18,7 @@ class GameBoy(
     cartridgeBin: ByteArray,
     private val controller: Controller,
     screenListener: ScreenListener
-) : Runnable {
+) {
     private val F_ZERO = 0x80
     private val F_SUBTRACT = 0x40
     private val F_HALFCARRY = 0x20
@@ -94,7 +96,6 @@ class GameBoy(
         registers, memory, oam,
         gbcFeatures, palette ?: Colors.GB, screenListener, 0
     )
-    private val speaker: Speaker = Speaker(registers)
 
     private fun init() {
         gbcRamBank = 1
@@ -297,9 +298,6 @@ class GameBoy(
         } else if ((mask and INT_P10) != 0) {
             setPC(0x60)
             registers[0x0f] = (registers[0x0f] - INT_P10).toByte()
-        } else {
-            // throw new RuntimeException("concurrent modification exception: " + mask + " "
-            //		+ registers[0xff] + " " + registers[0x0f]);
         }
 
         interruptsEnabled = false
@@ -364,7 +362,6 @@ class GameBoy(
                             registers[0x0f] = (registers[0x0f].toInt() or INT_LCDC).toByte()
                         }
                     }
-                    speaker.outputSound()
                 }
 
                 if (line == 0) {
@@ -719,7 +716,7 @@ class GameBoy(
         }
     }
 
-    override fun run() {
+    fun run() {
         try {
             this.isTerminated = false
 
@@ -729,7 +726,7 @@ class GameBoy(
             var offset: Int
             var b3: Int
 
-            System.gc()
+            //fixme why call System.gc()
 
             screen.fixTimer()
 
@@ -1560,7 +1557,7 @@ class GameBoy(
                     else -> if ((b1 and 0xC0) == 0x80) {
                         executeALU(b1)
                     } else {
-                        throw RuntimeException(Integer.toHexString(b1))
+                        terminate()
                     }
                 }
 
@@ -1689,7 +1686,12 @@ class GameBoy(
             }
 
             0x41 -> registers[num] = (data and 0xf8).toByte()
-            0x46 -> System.arraycopy(memory[data shr 5], (data shl 8) and 0x1f00, oam, 0, 0xa0)
+            0x46 -> memory[data shr 5].copyInto(
+                destination = oam,
+                destinationOffset = 0,
+                startIndex = (data shl 8) and 0x1f00,
+                endIndex = ((data shl 8) and 0x1f00) + 0xa0
+            )
             0x47 -> {
                 screen.decodePalette(0, data)
                 if (registers[num] != data.toByte()) {
@@ -1827,7 +1829,7 @@ class GameBoy(
             else -> registers[num] = data.toByte()
         }
         if (num in 0x10..0x3f) {
-            speaker.ioWrite(num, data)
+
         }
     }
 
@@ -1972,11 +1974,28 @@ class GameBoy(
         interruptsArmed = flatState[offset++].toInt() != 0
         interruptEnableRequested = flatState[offset++].toInt() != 0
 
-        System.arraycopy(flatState, offset, mainRam, 0, mainRam.size)
+        flatState.copyInto(
+            destination = mainRam,
+            destinationOffset = 0,
+            startIndex = offset,
+            endIndex = offset + mainRam.size
+        )
         offset += mainRam.size
-        System.arraycopy(flatState, offset, oam, 0, 0x00A0)
+        flatState.copyInto(
+            destination = oam,
+            destinationOffset = 0,
+            startIndex = offset,
+            endIndex = offset + 0x00A0
+        )
         offset += 0x00A0
-        System.arraycopy(flatState, offset, registers, 0, 0x0100)
+
+        flatState.copyInto(
+            destination = registers,
+            destinationOffset = 0,
+            startIndex = offset,
+            endIndex = offset + 0x0100
+        )
+
         offset += 0x0100
 
         divReset = BytesOperation.getInt(flatState, offset)
@@ -1986,7 +2005,12 @@ class GameBoy(
 
         for (i in 0..<cartridge.ram.size) {
             cartridge.ram[i].let {
-                System.arraycopy(flatState, offset, it!!, 0, 0x2000)
+                flatState.copyInto(
+                    destination = it,
+                    destinationOffset = 0,
+                    startIndex = offset,
+                    endIndex = offset + 0x2000
+                )
             }
             offset += 0x2000
         }
@@ -2002,7 +2026,13 @@ class GameBoy(
         mbc1LargeRamMode = (flatState[offset++].toInt() != 0)
         cartRamEnabled = (flatState[offset++].toInt() != 0)
 
-        System.arraycopy(flatState, offset, cartridge.rtcReg, 0, cartridge.rtcReg.size)
+        flatState.copyInto(
+            destination = cartridge.rtcReg,
+            destinationOffset = 0,
+            startIndex = offset,
+            endIndex = offset + cartridge.rtcReg.size
+        )
+
         offset += cartridge.rtcReg.size
 
         offset = screen.unflatten(flatState, offset)
@@ -2065,11 +2095,26 @@ class GameBoy(
         flatState[offset++] = (if (interruptsArmed) 1 else 0).toByte()
         flatState[offset++] = (if (interruptEnableRequested) 1 else 0).toByte()
 
-        System.arraycopy(mainRam, 0, flatState, offset, mainRam.size)
+        mainRam.copyInto(
+            destination = flatState,
+            destinationOffset = offset,
+            startIndex = 0,
+            endIndex = mainRam.size
+        )
         offset += mainRam.size
-        System.arraycopy(oam, 0, flatState, offset, 0x00A0)
+        oam.copyInto(
+            destination = flatState,
+            destinationOffset = offset,
+            startIndex = 0,
+            endIndex = 0x00A0
+        )
         offset += 0x00A0
-        System.arraycopy(registers, 0, flatState, offset, 0x0100)
+        registers.copyInto(
+            destination = flatState,
+            destinationOffset = offset,
+            startIndex = 0,
+            endIndex = 0x0100
+        )
         offset += 0x0100
 
         BytesOperation.setInt(flatState, offset, divReset)
@@ -2078,7 +2123,12 @@ class GameBoy(
         offset += 4
 
         for (j in 0..<cartridge.ram.size) {
-            System.arraycopy(cartridge.ram[j], 0, flatState, offset, 0x2000)
+            cartridge.ram[j].copyInto(
+                destination = flatState,
+                destinationOffset = offset,
+                startIndex = 0,
+                endIndex = 0x2000
+            )
             offset += 0x2000
         }
 
@@ -2090,7 +2140,12 @@ class GameBoy(
         flatState[offset++] = (if (mbc1LargeRamMode) 1 else 0).toByte()
         flatState[offset++] = (if (cartRamEnabled) 1 else 0).toByte()
 
-        System.arraycopy(cartridge.rtcReg, 0, flatState, offset, cartridge.rtcReg.size)
+        cartridge.rtcReg.copyInto(
+            destination = flatState,
+            destinationOffset = offset,
+            startIndex = 0,
+            endIndex = cartridge.rtcReg.size
+        )
         offset += cartridge.rtcReg.size
 
         offset = screen.flatten(flatState, offset)
@@ -2105,7 +2160,7 @@ class GameBoy(
         return flatState
     }
 
-    private val cheatMap: MutableMap<Int?, Cheat?> = TreeMap()
+    private val cheatMap: MutableMap<Int?, Cheat?> = mutableMapOf()
 
     fun setCheat(cheat: Cheat?) {
         if (cheat == null) return
@@ -2132,41 +2187,38 @@ class GameBoy(
     }
 
     fun setSoundEnable(channelEnable: Boolean) {
-        speaker.setSoundEnabled(channelEnable)
     }
 
     fun setChannelEnable(channel: Int, enable: Boolean) {
-        speaker.setChannelEnable(channel, enable)
     }
 
     fun setSpeed(i: Int) {
-        speaker.setSpeed(i)
         screen.setSpeed(i)
     }
-
-    private var thread: Thread? = null
 
     init {
         init()
     }
 
+    private var job: Job? = null
+    private val scope = CoroutineScope(Dispatchers.Default)
+
     fun running(): Boolean {
-        return thread != null && thread!!.isAlive
+        return job?.isActive == true
     }
 
     fun startup() {
         if (!running()) {
-            thread = Thread(this)
-            thread!!.start()
+            job = scope.launch {
+                run()
+            }
         }
     }
 
-    fun shutdown() {
+    suspend fun shutdown() {
         if (running()) {
             terminate()
-            while (thread!!.isAlive) {
-                Thread.yield()
-            }
+            job?.cancelAndJoin()
         } else {
             throw RuntimeException("")
         }

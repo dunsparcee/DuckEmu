@@ -1,8 +1,13 @@
 package io.duckemu.gbc.gpu
 
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import io.duckemu.gbc.BytesOperation
 import io.duckemu.gbc.addons.Speed
-import java.awt.image.BufferedImage
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.time.Clock
 
 internal abstract class ScreenAbstract(
     protected var registers: ByteArray,
@@ -45,7 +50,7 @@ internal abstract class ScreenAbstract(
     protected var colorCount: Int = 0
     protected var width: Int = 160
     protected var height: Int = 144
-    protected var frameBufferImage: BufferedImage? = null
+    protected var frameBufferImage: ImageBitmap? = null
 
     init {
         if (this.gbcFeatures) {
@@ -71,7 +76,12 @@ internal abstract class ScreenAbstract(
     fun unflatten(flatState: ByteArray, offset: Int): Int {
         var offset = offset
         for (i in videoRamBanks.indices) {
-            System.arraycopy(flatState, offset, videoRamBanks[i], 0, 0x2000)
+            flatState.copyInto(
+                destination = videoRamBanks[i],
+                destinationOffset = 0,
+                startIndex = offset,
+                endIndex = offset + 0x2000
+            )
             offset += 0x2000
         }
 
@@ -100,7 +110,12 @@ internal abstract class ScreenAbstract(
     fun flatten(flatState: ByteArray, offset: Int): Int {
         var offset = offset
         for (i in videoRamBanks.indices) {
-            System.arraycopy(videoRamBanks[i], 0, flatState, offset, 0x2000)
+            videoRamBanks[i].copyInto(
+                destination = flatState,
+                destinationOffset = offset,
+                startIndex = 0,
+                endIndex = 0x2000
+            )
             offset += 0x2000
         }
 
@@ -147,24 +162,22 @@ internal abstract class ScreenAbstract(
             skipCount++
             if (skipCount >= maxFrameSkip) {
                 skipping = false
-                val lag = System.currentTimeMillis().toInt() - timer
+                val lag = Clock.System.now().toEpochMilliseconds().toInt() - timer
 
                 if (lag > MS_PER_FRAME) timer += lag - MS_PER_FRAME
-            } else skipping = (timer - (System.currentTimeMillis().toInt()) < 0)
+            } else skipping = (timer - (Clock.System.now().toEpochMilliseconds().toInt()) < 0)
             return
         }
         lastSkipCount = skipCount
         screenListener.onFrameReady(frameBufferImage, lastSkipCount)
-        var now = System.currentTimeMillis().toInt()
+        var now = Clock.System.now().toEpochMilliseconds().toInt()
         if (maxFrameSkip == 0) skipping = false
         else skipping = timer - now < 0
-        try {
-            while (timer > now + MS_PER_FRAME) {
-                Thread.sleep(1)
-                now = System.currentTimeMillis().toInt()
+        while (timer > now + MS_PER_FRAME) {
+            GlobalScope.launch {
+                delay(1)
             }
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
+            now = Clock.System.now().toEpochMilliseconds().toInt()
         }
         skipCount = 0
     }
@@ -204,7 +217,7 @@ internal abstract class ScreenAbstract(
     }
 
     fun fixTimer() {
-        timer = System.currentTimeMillis().toInt()
+        timer = Clock.System.now().toEpochMilliseconds().toInt()
     }
 
     abstract fun addressWrite(addr: Int, data: Byte)
@@ -218,8 +231,7 @@ internal abstract class ScreenAbstract(
     }
 
     companion object {
-        @JvmStatic
-        protected var weaveLookup: IntArray = IntArray(256)
+        var weaveLookup: IntArray = IntArray(256)
 
         init {
             for (i in 1..255) {

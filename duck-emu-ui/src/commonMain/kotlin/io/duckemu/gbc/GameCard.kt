@@ -1,5 +1,7 @@
 package io.duckemu.gbc
 
+import kotlin.time.Clock
+
 open class GameCard(bin: ByteArray) {
     val rom: Array<ByteArray>
     val type: Int
@@ -16,7 +18,7 @@ open class GameCard(bin: ByteArray) {
         this.hasBattery = loadHasBattery(bin)
         this.ram = loadRam(bin)
         this.rtcReg = ByteArray(5)
-        this.lastRtcUpdate = System.currentTimeMillis().toInt()
+        this.lastRtcUpdate = Clock.System.now().toEpochMilliseconds().toInt()
     }
 
     private fun loadRom(bin: ByteArray): Array<ByteArray> {
@@ -29,7 +31,12 @@ open class GameCard(bin: ByteArray) {
         else cartRomBankNumber = -1
         val rom = Array(cartRomBankNumber * 2) { ByteArray(0x2000) }
         for (i in 0..<cartRomBankNumber * 2) {
-            if (0x2000 * i < bin.size) System.arraycopy(bin, 0x2000 * i, rom[i], 0, 0x2000)
+            if (0x2000 * i < bin.size) bin.copyInto(
+                destination = rom[i],
+                destinationOffset = 0,
+                startIndex = 0x2000 * i,
+                endIndex = 0x2000 * i + 0x2000
+            )
         }
         return rom
     }
@@ -61,7 +68,7 @@ open class GameCard(bin: ByteArray) {
 
     fun rtcSync() {
         if ((rtcReg[4].toInt() and 0x40) == 0) {
-            val now = System.currentTimeMillis().toInt()
+            val now = Clock.System.now().toEpochMilliseconds().toInt()
             while (now - lastRtcUpdate > 1000) {
                 lastRtcUpdate += 1000
 
@@ -112,23 +119,45 @@ open class GameCard(bin: ByteArray) {
         val bankSize = ram[0].size
         val size = bankCount * bankSize + 13
         val b = ByteArray(size)
-        for (i in 0..<bankCount) System.arraycopy(ram[i], 0, b, i * bankSize, bankSize)
-        System.arraycopy(rtcReg, 0, b, bankCount * bankSize, 5)
-        val now = System.currentTimeMillis()
-        BytesOperation.setInt(b, bankCount * bankSize + 5, (now shr 32).toInt())
-        BytesOperation.setInt(b, bankCount * bankSize + 9, now.toInt())
+        for (i in 0..<bankCount) ram[i].copyInto(
+            destination = b,
+            destinationOffset = i * bankSize,
+            startIndex = 0,
+            endIndex = bankSize
+        )
+
+        rtcReg.copyInto(
+            destination = b,
+            destinationOffset = bankCount * bankSize,
+            startIndex = 0,
+            endIndex = 5
+        )
+
+        val now = Clock.System.now().toEpochMilliseconds().toInt()
+        BytesOperation.setInt(b, bankCount * bankSize + 5, (now shr 32))
+        BytesOperation.setInt(b, bankCount * bankSize + 9, now)
         return b
     }
 
     fun setSram(b: ByteArray) {
         val bankCount = ram.size
         val bankSize = ram[0].size
-        for (i in 0..<bankCount) System.arraycopy(b, i * bankSize, ram[i], 0, bankSize)
+        for (i in 0..<bankCount) b.copyInto(
+            destination = ram[i],
+            destinationOffset = 0,
+            startIndex = i * bankSize,
+            endIndex = i * bankSize + bankSize
+        )
         if (b.size == bankCount * bankSize + 13) {
-            System.arraycopy(b, bankCount * bankSize, rtcReg, 0, 5)
+            b.copyInto(
+                destination = rtcReg,
+                destinationOffset = 0,
+                startIndex = bankCount * bankSize,
+                endIndex = bankCount * bankSize + 5
+            )
             var time: Long = BytesOperation.getInt(b, bankCount * bankSize + 5).toLong()
             time = (time shl 32) + (BytesOperation.getInt(b, bankCount * bankSize + 9).toLong() and 0xffffffffL)
-            time = System.currentTimeMillis() - time
+            time = Clock.System.now().toEpochMilliseconds().toInt() - time
             this.rtcSkip((time / 1000).toInt())
         }
     }

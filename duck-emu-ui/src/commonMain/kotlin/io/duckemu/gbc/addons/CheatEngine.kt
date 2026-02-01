@@ -11,7 +11,7 @@ fun newCheat(code: String?): Cheat? {
     if (code.matches("^[0-9A-Fa-f]{4}:[0-9A-Fa-f]{2}$".toRegex())) {
         val cheat = Cheat()
         cheat.code = code
-        cheat.address = code.substring(0, 4).toInt(16)
+        cheat.address = code.take(4).toInt(16)
         cheat.changeTo = code.substring(5, 7).toInt(16).toByte()
         return cheat
     }
