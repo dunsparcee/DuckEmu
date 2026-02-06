@@ -1,5 +1,6 @@
 package io.duckemu.gbc.addons
-class Speed @JvmOverloads constructor(private var speed: Int = 1) {
+
+class Speed(private var speed: Int = 1) {
     private var speedCounter = 0
 
     fun output(): Boolean {

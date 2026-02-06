@@ -17,8 +17,10 @@ junit = "4.13.2"
 kotlin = "2.3.0"
 kotlinx-coroutines = "1.10.2"
 material3 = "1.10.0-alpha05"
+lexilabs-basic = "0.2.6-beta02"
 
 [libraries]
+lexilabs-basic-sound = { module = "app.lexilabs.basic:basic-sound", version.ref = "lexilabs-basic" }
 compose-keyhandler = { module = "io.github.loop312:compose-keyhandler", version.ref = "composeKeyhandler" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekitCore" }
 filekit-ui = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekitCore" }

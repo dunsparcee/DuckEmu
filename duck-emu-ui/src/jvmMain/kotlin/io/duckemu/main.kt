@@ -6,6 +6,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import io.duckemu.gbc.EmulatorScreen
+import io.duckemu.gbc.GameBoyViewModel
+import io.duckemu.gbc.setupKeyHandler
 import io.github.compose_keyhandler.KeyHandlerHost
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.openFilePicker
@@ -25,13 +28,17 @@ fun main() = application {
                         scope.launch {
                             val file = FileKit.openFilePicker()
                             file?.let {
-                                gbController.startGBC(it.file.path)
+                                gbController.startGBC(it)
                             }
                         }
                     }
                 )
 
-                Item("Close", onClick = { gbController.stopGBC() })
+                Item("Close", onClick = {
+                    scope.launch {
+                        gbController.stopGBC()
+                    }
+                })
             }
         }
 

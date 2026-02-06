@@ -12,7 +12,8 @@ plugins {
 kotlin {
     androidTarget {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_21)
+            freeCompilerArgs.add("-Xexpect-actual-classes")
         }
     }
     
@@ -34,6 +35,9 @@ kotlin {
             implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
+            implementation("com.squareup.okio:okio:3.9.0")
+            implementation(libs.lexilabs.basic.sound)
+
             implementation(libs.filekit.ui)
             implementation(libs.filekit.core)
             implementation(libs.compose.keyhandler)
@@ -94,7 +98,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "io.duckemu"
+            packageName = "duckemu"
             packageVersion = "1.0.0"
 
             macOS {

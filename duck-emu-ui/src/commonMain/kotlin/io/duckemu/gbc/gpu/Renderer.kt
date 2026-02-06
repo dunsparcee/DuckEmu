@@ -1,10 +1,10 @@
 package io.duckemu.gbc.gpu
 
-import java.awt.image.BufferedImage
-import java.awt.image.DataBufferInt
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.ImageBitmap
 
 fun interface ScreenListener {
-    fun onFrameReady(image: BufferedImage?, skipFrame: Int)
+    fun onFrameReady(image: ImageBitmap?, skipFrame: Int)
 }
 
 internal class ScreenImplement(
@@ -417,10 +417,6 @@ internal class ScreenImplement(
         }
     }
 
-    private fun createImage(width: Int, height: Int, pixes: IntArray): BufferedImage {
-        val bi = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-        val target = (bi.raster.getDataBuffer() as DataBufferInt).getData()
-        System.arraycopy(pixes, 0, target, 0, target.size)
-        return bi
-    }
 }
+
+expect fun createImage(width: Int, height: Int, pixels: IntArray): ImageBitmap
