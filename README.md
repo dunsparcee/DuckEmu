@@ -1,5 +1,5 @@
-<div style="display: flex; justify-content: center;">
-    <img width="128" src="https://i.imgur.com/bcBLJ20.png" style="border-radius: 12px" alt="DuckEmu-Logo"/>
+<div align="center">
+  <img width="128" src="https://i.imgur.com/jOu6ji0.png" style="border-radius:12px">
 </div>
 
 ## Welcome to DuckEmu.
@@ -13,8 +13,6 @@ DuckEmu is a future multiplatform GB/GBC/GBA/NDS emulator written in Kotlin.
 
 ### GB
 
-<img width="400" src="https://i.imgur.com/YobGKEX.png" alt="pokemon-red"/>
-<img width="400" src="https://i.imgur.com/YobGKEX.png" alt="pokemon-red"/>
 <img width="400" src="https://i.imgur.com/YobGKEX.png" alt="pokemon-red"/>
 
 ### GBC
@@ -47,5 +45,5 @@ cd DuckEmu/composeApp
 ```
 
 ```sh
-gradle composeApp:package<DMG/Msi/Deb>
+gradle composeApp:package<Dmg/Msi/Deb>
 ```
