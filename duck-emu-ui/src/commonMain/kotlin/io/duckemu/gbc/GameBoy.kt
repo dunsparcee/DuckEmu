@@ -2,6 +2,7 @@ package io.duckemu.gbc
 
 import io.duckemu.gbc.addons.Cheat
 import io.duckemu.gbc.addons.newCheat
+import io.duckemu.gbc.audio.AudioInterface
 import io.duckemu.gbc.gpu.Colors
 import io.duckemu.gbc.gpu.ScreenAbstract
 import io.duckemu.gbc.gpu.ScreenImplement
@@ -74,6 +75,8 @@ class GameBoy(
     var oam: ByteArray = ByteArray(0x100)
 
     var registers: ByteArray = ByteArray(0x100)
+
+    private val speaker: AudioInterface = AudioInterface(registers)
 
     private var divReset = 0
 
@@ -362,6 +365,8 @@ class GameBoy(
                             registers[0x0f] = (registers[0x0f].toInt() or INT_LCDC).toByte()
                         }
                     }
+                    speaker.outputSound()
+
                 }
 
                 if (line == 0) {
@@ -1829,10 +1834,9 @@ class GameBoy(
             else -> registers[num] = data.toByte()
         }
         if (num in 0x10..0x3f) {
-
+            speaker.ioWrite(num, data)
         }
     }
-
 
     private fun mapRom(bankNo: Int) {
         var bankNo = bankNo
@@ -2187,12 +2191,15 @@ class GameBoy(
     }
 
     fun setSoundEnable(channelEnable: Boolean) {
+        speaker.setSoundEnabled(channelEnable)
     }
 
     fun setChannelEnable(channel: Int, enable: Boolean) {
+        speaker.setChannelEnable(channel, enable)
     }
 
     fun setSpeed(i: Int) {
+        speaker.setSpeed(i)
         screen.setSpeed(i)
     }
 

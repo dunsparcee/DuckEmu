@@ -12,7 +12,8 @@ plugins {
 kotlin {
     androidTarget {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_21)
+            freeCompilerArgs.add("-Xexpect-actual-classes")
         }
     }
     
@@ -35,6 +36,7 @@ kotlin {
         }
         commonMain.dependencies {
             implementation("com.squareup.okio:okio:3.9.0")
+            implementation(libs.lexilabs.basic.sound)
 
             implementation(libs.filekit.ui)
             implementation(libs.filekit.core)

@@ -42,7 +42,6 @@ fun MainScreen() {
     val gbController = remember { GameBoyViewModel() }
     val keyHandler = remember { setupKeyHandler(gbController) }
     val scope = rememberCoroutineScope()
-    var showMenu by remember { mutableStateOf(false) }
 
     val launcher = rememberFilePickerLauncher { file ->
         file?.let {
