@@ -174,9 +174,6 @@ internal abstract class ScreenAbstract(
         if (maxFrameSkip == 0) skipping = false
         else skipping = timer - now < 0
         while (timer > now + MS_PER_FRAME) {
-            GlobalScope.launch {
-                delay(1)
-            }
             now = Clock.System.now().toEpochMilliseconds().toInt()
         }
         skipCount = 0

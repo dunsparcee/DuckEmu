@@ -22,6 +22,7 @@ class GameBoyViewModel {
     private var gameBoy: GameBoy? = null
     val inputHandler = Controller()
     private var gameLoaded = ""
+
     suspend fun startGBC(path: PlatformFile) {
         stopGBC()
         val cartridgeBin = path.readBytes()
@@ -33,7 +34,7 @@ class GameBoyViewModel {
         }.apply {
             setSoundEnable(DuckEmuConfig.enableSound)
             setSpeed(DuckEmuConfig.speed)
-            gameLoaded = path.path.substringBeforeLast("")
+            gameLoaded = path.path
             val sRamFile = "${gameLoaded}.sram.sav"
 
             val file = PlatformFile(sRamFile)

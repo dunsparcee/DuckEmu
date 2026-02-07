@@ -731,8 +731,6 @@ class GameBoy(
             var offset: Int
             var b3: Int
 
-            //fixme why call System.gc()
-
             screen.fixTimer()
 
             while (!this.isTerminated) {
@@ -1812,10 +1810,10 @@ class GameBoy(
 
             0x70 -> {
                 if (gbcFeatures) {
-                    if ((data and 0x07) < 2) {
-                        gbcRamBank = 1
+                    gbcRamBank = if ((data and 0x07) < 2) {
+                        1
                     } else {
-                        gbcRamBank = data and 0x07
+                        data and 0x07
                     }
 
                     if (globalPC >= 0xC000) {
