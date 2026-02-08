@@ -1,7 +1,7 @@
-package io.duckemu.gbc.audio
+package io.duckemu.gbc.domain.audio
 
-import io.duckemu.gbc.BytesOperation
-import io.duckemu.gbc.addons.Speed
+import io.duckemu.gbc.utils.BytesOperation
+import io.duckemu.gbc.data.addons.Speed
 import java.util.Random
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem

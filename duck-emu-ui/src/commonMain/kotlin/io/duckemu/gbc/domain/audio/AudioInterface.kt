@@ -1,14 +1,9 @@
-package io.duckemu.gbc.audio
-
-import io.duckemu.gbc.BytesOperation
-import io.duckemu.gbc.addons.Speed
-import kotlin.random.Random
+package io.duckemu.gbc.domain.audio
 
 const val CHAN_LEFT: Int = 1
 const val CHAN_RIGHT: Int = 2
 const val CHAN_MONO: Int = 4
 
-// Common expect/actual class
 expect class AudioInterface() {
     constructor(registers: ByteArray)
 

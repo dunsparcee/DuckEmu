@@ -1,4 +1,4 @@
-package io.duckemu.gbc.gpu
+package io.duckemu.gbc.domain.gpu
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap

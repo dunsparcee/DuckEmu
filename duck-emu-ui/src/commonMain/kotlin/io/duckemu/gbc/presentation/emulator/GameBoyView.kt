@@ -1,4 +1,4 @@
-package io.duckemu.gbc
+package io.duckemu.gbc.presentation.emulator
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize

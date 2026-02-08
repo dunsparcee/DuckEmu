@@ -1,4 +1,4 @@
-package io.duckemu.gbc
+package io.duckemu.gbc.data.emulator
 
 object DuckEmuConfig {
     var enableSound: Boolean = true

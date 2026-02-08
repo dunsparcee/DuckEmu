@@ -1,4 +1,4 @@
-package io.duckemu.gbc.gpu
+package io.duckemu.gbc.data.gpu
 
 object Colors {
     val GB: IntArray = intArrayOf(-0x7f190726, -0x7f66377a, -0x7fbc8697, -0x7ffae0d6)
