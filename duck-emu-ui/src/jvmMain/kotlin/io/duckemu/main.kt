@@ -97,7 +97,7 @@ fun main() = application {
 
             if (gameBoy.gameBoyImage == null) {
                 Box {
-                    GameLibraryScreen(gameLibrary)
+                    GameLibraryScreen(gameLibrary, gameBoy)
                 }
             }
 

@@ -5,6 +5,7 @@ import io.github.vinceglb.filekit.extension
 import io.github.vinceglb.filekit.list
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.nameWithoutExtension
+import io.github.vinceglb.filekit.path
 import io.github.vinceglb.filekit.size
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -30,6 +31,7 @@ class GameRepository {
             fileType = file.extension,
             size = "${file.size() / 1000 / 1000} mb",
             playTime = null,
+            path = file.path
         )
     }
 

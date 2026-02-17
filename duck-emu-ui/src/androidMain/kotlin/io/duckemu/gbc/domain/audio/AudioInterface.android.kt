@@ -8,7 +8,6 @@ import io.duckemu.gbc.addons.Speed
 import java.util.Random
 import kotlin.math.max
 
-// Remove or comment out this suppression if not using KMP
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 public actual class AudioInterface actual constructor() {
 
@@ -19,7 +18,6 @@ public actual class AudioInterface actual constructor() {
     private var registers = ByteArray(0)
     private val speed = Speed()
 
-    // Replaced SourceDataLine with Android's AudioTrack
     var audioTrack: AudioTrack? = null
 
     var channel1: SquareWaveGenerator
@@ -40,11 +38,10 @@ public actual class AudioInterface actual constructor() {
     var sampleRateAudio: Int = 44100
     var bufferLengthMsec: Int = 200
 
-    // Helper constants for channels
     companion object {
         const val CHAN_LEFT = 1
         const val CHAN_RIGHT = 2
-        const val CHAN_MONO = 4 // Assuming 4 based on usage, adjust if your constants differ
+        const val CHAN_MONO = 4
     }
 
     init {
@@ -75,7 +72,6 @@ public actual class AudioInterface actual constructor() {
     }
 
     actual fun ioWrite(num: Int, data: Int) {
-        // Logic remains identical to JVM version
         when (num) {
             0x10 -> this.channel1.setSweep(
                 (BytesOperation.unsign(data.toByte()) and 0x70) shr 4,
@@ -241,28 +237,19 @@ public actual class AudioInterface actual constructor() {
     actual fun outputSound() {
         if (soundEnabledAudio && speed.output()) {
             audioTrack?.let { track ->
-                // Calculate chunk size.
-                // Original used available() * 2, capped at sampleRate/28.
-                // In Android, we try to write a consistent small chunk.
-                // 44100 / 28 is approx 1575. We align to 2 (stereo).
                 val chunkSize = (sampleRateAudio / 28) and 0xFFFE
 
-                // Create buffer for mixing (Signed 8-bit)
                 val b = ByteArray(chunkSize)
 
-                // Mix channels
                 if (channel1EnableAudio) channel1.play(b, chunkSize / 2, 0)
                 if (channel2EnableAudio) channel2.play(b, chunkSize / 2, 0)
                 if (channel3EnableAudio) channel3.play(b, chunkSize / 2, 0)
                 if (channel4EnableAudio) channel4.play(b, chunkSize / 2, 0)
 
-                // CONVERSION: Signed 8-bit -> Unsigned 8-bit
-                // Android ENCODING_PCM_8BIT is unsigned (0-255), Generators are signed (-128 to 127)
                 for (i in b.indices) {
                     b[i] = (b[i] + 128).toByte()
                 }
 
-                // Write to hardware
                 track.write(b, 0, chunkSize)
             }
         }
