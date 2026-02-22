@@ -1,10 +1,13 @@
 package io.duckemu.gbc.presentation.emulator
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.key.Key
+import io.duckemu.Emulator
+import io.duckemu.EmulatorViewModel
 import io.duckemu.gbc.data.emulator.Controller
 import io.duckemu.gbc.data.emulator.DuckEmuConfig
 import io.duckemu.gbc.data.gpu.Colors
@@ -19,21 +22,21 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.SYSTEM
 
-class GameBoyViewModel {
-    var gameBoyImage by mutableStateOf<ImageBitmap?>(null)
+class GameBoyViewModel : EmulatorViewModel() {
     var isRunning by mutableStateOf(false)
     private var gameBoy: GameBoy? = null
     val inputHandler = Controller()
     private var gameLoaded = ""
+    var controller: KeyHandler = setupKeyHandler(this)
 
-    suspend fun startGBC(path: PlatformFile) {
-        stopGBC()
+    override suspend fun start(path: PlatformFile) {
+        stop()
         val cartridgeBin = path.readBytes()
         val isGbc = DuckEmuConfig.color_style != "GB" && DuckEmuConfig.color_style != "GBP"
         val palette = if (DuckEmuConfig.color_style == "GBP") Colors.GBP else Colors.GB
 
         gameBoy = GameBoy(isGbc, palette, cartridgeBin, inputHandler) { image, _ ->
-            gameBoyImage = image
+            graphics = image
         }.apply {
             setSoundEnable(DuckEmuConfig.enableSound)
             setSpeed(DuckEmuConfig.speed)
@@ -50,7 +53,15 @@ class GameBoyViewModel {
         isRunning = true
     }
 
-    suspend fun stopGBC() {
+    override fun controllerSetup(): KeyHandler {
+        return controller
+    }
+
+    override fun isEmuRunning() : Boolean {
+        return isRunning
+    }
+
+    override suspend fun stop() {
         gameBoy?.let { gb ->
             if (gb.running()) {
                 gb.shutdown()
@@ -63,7 +74,7 @@ class GameBoyViewModel {
             }
         }
         gameBoy = null
-        gameBoyImage = null
+        graphics = null
         isRunning = false
     }
 }

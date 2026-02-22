@@ -1,4 +1,4 @@
-package io.duckemu.gbc.presentation
+package io.duckemu
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

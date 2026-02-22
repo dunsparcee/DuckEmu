@@ -29,6 +29,8 @@ import coil3.compose.AsyncImage
 import duckemu.duck_emu_ui.generated.resources.Res
 import duckemu.duck_emu_ui.generated.resources.gb
 import duckemu.duck_emu_ui.generated.resources.gba
+import duckemu.duck_emu_ui.generated.resources.nes
+import io.duckemu.EmulatorViewModel
 import io.duckemu.gbc.data.game.Game
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
@@ -36,7 +38,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun GameLibraryScreen(viewModel: GameLibraryViewModel, gameBoyViewModel: GameBoyViewModel) {
+fun GameLibraryScreen(viewModel: GameLibraryViewModel, emulators: Map<String, EmulatorViewModel>) {
     val console by viewModel.console.collectAsState()
     val gamesByConsole by viewModel.gamesByConsole.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
@@ -77,7 +79,7 @@ fun GameLibraryScreen(viewModel: GameLibraryViewModel, gameBoyViewModel: GameBoy
                         ConsoleCard(console, games, {
                             val file = PlatformFile(it.path)
                             scope.launch {
-                                gameBoyViewModel.startGBC(file)
+                                emulators[console]?.start(file)
                             }
                         })
                     }
@@ -98,12 +100,14 @@ private fun ConsoleCard(console: String, games: List<Game>, onSelectGame: (Game)
     val consoleImage = when (console) {
         "gbc" -> Res.drawable.gb
         "gba" -> Res.drawable.gba
+        "nes" -> Res.drawable.nes
         else -> Res.drawable.gb
     }
 
     val consoleName = when (console) {
         "gbc" -> "GameBoy Color"
         "gba" -> "GameBoy Advance"
+        "nes" -> "Nintendo"
         else -> ""
     }
 
