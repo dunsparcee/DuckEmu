@@ -3,8 +3,12 @@ package io.duckemu.nes.core
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.key.Key
 import io.duckemu.EmulatorViewModel
+import io.duckemu.gbc.data.emulator.Controller
+import io.duckemu.gbc.presentation.emulator.GameBoyViewModel
 import io.duckemu.nes.core.ui.Renderer
+import io.github.compose_keyhandler.KeyActionBuilder
 import io.github.compose_keyhandler.KeyHandler
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.path
@@ -28,14 +32,12 @@ class NesViewModel : EmulatorViewModel() {
 
     private var job: Job? = null
     private val scope = CoroutineScope(Dispatchers.Default)
-    private val nesLock = Any()
 
     fun run() {
         val fps = 60
 
         while (true) {
-
-            val start = Clock.System.now().nanosecondsOfSecond // available in Kotlin/JVM & Android
+            val start = Clock.System.now().nanosecondsOfSecond
             graphics = nes?.execFrame()
 
             while (true) {
@@ -45,7 +47,7 @@ class NesViewModel : EmulatorViewModel() {
                 }
                 if (bufStat == 0) {
                     val elapsed = Clock.System.now().nanosecondsOfSecond - start
-                    val wait = ((1.0 / fps) * 1e9 - elapsed).toLong() // fixed unit bug*
+                    val wait = ((1.0 / fps) * 1e9 - elapsed).toLong()
                     if (wait > 0) {
                         runBlocking { delay(wait / 1_000_000L) }
                     }
@@ -69,7 +71,7 @@ class NesViewModel : EmulatorViewModel() {
     }
 
     override fun controllerSetup(): KeyHandler {
-        return KeyHandler()
+        return setupKeyHandler()
     }
 
     override fun isEmuRunning(): Boolean {
@@ -81,4 +83,37 @@ class NesViewModel : EmulatorViewModel() {
         graphics = null
         isRunning = false
     }
+
+    fun setupKeyHandler(): KeyHandler {
+        return KeyHandler {
+            onPress {
+                keys(true)
+            }
+            onRelease {
+                keys(false)
+            }
+        }
+    }
+
+    val keysToMap = arrayOf(
+        Key.Z, Key.X, Key.ShiftLeft,
+        Key.Enter, Key.DirectionUp, Key.DirectionDown,
+        Key.DirectionLeft, Key.DirectionRight,
+        Key.V, Key.B, Key.N, Key.M,
+        Key.O, Key.Comma, Key.K, Key.L
+    )
+
+
+    private fun KeyActionBuilder.keys(isPressed: Boolean) {
+        keysToMap.forEach { targetKey ->
+            key(targetKey) {
+                upDown(isPressed, targetKey)
+            }
+        }
+    }
+
+    fun upDown(isPressed: Boolean, index: Key) {
+        nes?.renderer?.onKey(index, isPressed)
+    }
 }
+

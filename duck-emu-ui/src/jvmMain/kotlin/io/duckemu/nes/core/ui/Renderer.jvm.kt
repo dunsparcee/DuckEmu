@@ -4,6 +4,7 @@ package io.duckemu.nes.core.ui
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.input.key.Key
 import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
@@ -102,23 +103,11 @@ actual class Renderer {
         inpi.buf = IntArray(16)
     }
 
-    fun loadKey() {
-        frame.addKeyListener(object : KeyAdapter() {
-            override fun keyPressed(e: KeyEvent) {
-                onKey(e.getKeyCode(), true)
-            }
-
-            override fun keyReleased(e: KeyEvent) {
-                onKey(e.getKeyCode(), false)
-            }
-        })
+    actual fun onKey(keyCode: Key, press: Boolean) {
+        for (i in 0..1) for (j in 0..7) if (keyCode == keyDef[i][j]) inpi.buf[i * 8 + j] = (if (press) 1 else 0)
     }
 
-    private fun onKey(keyCode: Int, press: Boolean) {
-        for (i in 0..1) for (j in 0..7) if (keyCode == keyDef[i]!![j]) inpi.buf[i * 8 + j] = (if (press) 1 else 0)
-    }
-
-    actual fun requestInput(padCount: Int, buttonCount: Int): Renderer.InputInfo {
+    actual fun requestInput(padCount: Int, buttonCount: Int): InputInfo {
         return inpi
     }
 
@@ -134,16 +123,16 @@ actual class Renderer {
         private const val FPS = 60
         private val SAMPLES_PER_FRAME: Int = SAMPLE_RATE / FPS
 
-        val keyDef: Array<IntArray?> = arrayOf<IntArray?>(
-            intArrayOf(
-                KeyEvent.VK_Z, KeyEvent.VK_X, KeyEvent.VK_SHIFT,
-                KeyEvent.VK_ENTER, KeyEvent.VK_UP, KeyEvent.VK_DOWN,
-                KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT,
+        val keyDef: Array<Array<Key>> = arrayOf(
+            arrayOf(
+                Key.Z, Key.X, Key.ShiftLeft,
+                Key.Enter, Key.DirectionUp, Key.DirectionDown,
+                Key.DirectionLeft, Key.DirectionRight
             ),
-            intArrayOf(
-                KeyEvent.VK_V, KeyEvent.VK_B, KeyEvent.VK_N, KeyEvent.VK_M,
-                KeyEvent.VK_O, KeyEvent.VK_COMMA, KeyEvent.VK_K,
-                KeyEvent.VK_L,
+            arrayOf(
+                Key.V, Key.B, Key.N, Key.M,
+                Key.O, Key.Comma, Key.K,
+                Key.L
             )
         )
     }
@@ -167,10 +156,4 @@ actual class Renderer {
     actual class InputInfo {
         actual var buf: IntArray = IntArray(16)
     }
-
-    actual fun run() {
-
-    }
-
-
 }

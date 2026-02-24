@@ -1,7 +1,9 @@
 @file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+
 package io.duckemu.nes.core.ui
 
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.input.key.Key
 
 expect class Renderer() {
     val soundBufferState: Int
@@ -32,5 +34,6 @@ expect class Renderer() {
     fun outputScreen(info: ScreenInfo): ImageBitmap
     fun outputSound(info: SoundInfo)
     fun outputMessage(msg: String?)
-    fun run()
+
+    fun onKey(keyCode: Key, press: Boolean)
 }

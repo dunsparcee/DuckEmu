@@ -1,4 +1,4 @@
-package io.duckemu.gbc.domain
+package io.duckemu
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
@@ -7,15 +7,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import io.duckemu.Emulator
-import io.duckemu.EmulatorViewModel
 import io.duckemu.gbc.data.game.GameRepository
 import io.duckemu.gbc.presentation.emulator.EmulatorScreen
 import io.duckemu.gbc.presentation.emulator.GameBoyViewModel
 import io.duckemu.gbc.presentation.emulator.GameLibraryScreen
 import io.duckemu.gbc.presentation.emulator.GameLibraryViewModel
-import io.duckemu.gbc.presentation.emulator.setupKeyHandler
-import io.duckemu.gbc.domain.nes.Main
 import io.duckemu.nes.core.NesViewModel
 import io.github.compose_keyhandler.KeyHandlerHost
 import io.github.vinceglb.filekit.FileKit
@@ -100,20 +96,17 @@ fun main() = application {
                 }
             }
 
-            consoles.forEach {
-                if (!it.value.isEmuRunning()) {
+            consoles.values.find { it.isEmuRunning() }?.let {
+                KeyHandlerHost(it.controllerSetup()) {
                     Box {
-                        GameLibraryScreen(gameLibrary, consoles)
+                        EmulatorScreen(it)
                     }
                 }
-
-                KeyHandlerHost(it.value.controllerSetup()) {
-                    Box {
-                        EmulatorScreen(it.value)
-                    }
+            } ?: run {
+                Box {
+                    GameLibraryScreen(gameLibrary, consoles)
                 }
             }
-
         }
     }
 }
