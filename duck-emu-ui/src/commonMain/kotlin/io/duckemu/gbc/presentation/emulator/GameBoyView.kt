@@ -21,31 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.duckemu.Emulator
 import io.duckemu.EmulatorViewModel
-
-@Composable
-fun EmulatorScreen(emuViewModel: EmulatorViewModel) {
-    Canvas(Modifier.fillMaxSize()) {
-        emuViewModel.graphics?.let { image ->
-
-            val canvasWidth = size.width
-            val canvasHeight = size.height
-            val scale = minOf(canvasWidth / image.width, canvasHeight / image.height)
-
-            val scaledWidth = image.width * scale
-            val scaledHeight = image.height * scale
-
-            val dx = (canvasWidth - scaledWidth) / 2
-            val dy = (canvasHeight - scaledHeight) / 2
-
-            drawImage(
-                image = image,
-                dstOffset = IntOffset(dx.toInt(), dy.toInt()),
-                dstSize = IntSize(scaledWidth.toInt(), scaledHeight.toInt()),
-                filterQuality = FilterQuality.None
-            )
-        }
-    }
-}
+import io.duckemu.emulator.presentation.EmulatorScreen
 
 val GbcPurple = Color(0xFF7D39F5)
 val ButtonGray = Color(0xFFD1D1D1)

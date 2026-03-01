@@ -5,6 +5,8 @@ package io.duckemu.nes.core.ui
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.key.Key
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
@@ -19,22 +21,12 @@ import javax.sound.sampled.DataLine
 import javax.sound.sampled.SourceDataLine
 
 actual class Renderer {
-    lateinit var frame: Frame
     private val scri = ScreenInfo()
     private val sndi = SoundInfo()
     private val inpi = InputInfo()
 
-    private val image = BufferedImage(
-        SCREEN_WIDTH,
-        SCREEN_HEIGHT, BufferedImage.TYPE_3BYTE_BGR
-    )
-
-    private val line: SourceDataLine
-    private val lineBufferSize: Int
-
-    actual fun outputMessage(msg: String?) {
-        println(msg)
-    }
+    private val line: SourceDataLine?
+    private var lineBufferSize: Int = 32
 
     actual fun requestScreen(width: Int, height: Int): ScreenInfo {
         if (!(scri.width == width && scri.height == height)) {
@@ -50,10 +42,10 @@ actual class Renderer {
     actual fun outputScreen(info: ScreenInfo): ImageBitmap {
         val bytes = ByteArray(SCREEN_WIDTH * SCREEN_HEIGHT * 4)
         for (i in 0..<SCREEN_WIDTH * SCREEN_HEIGHT) {
-            bytes[i * 4 + 0] = info.buf[i * 3 + 2] // R ← was B
-            bytes[i * 4 + 1] = info.buf[i * 3 + 1] // G
-            bytes[i * 4 + 2] = info.buf[i * 3 + 0] // B ← was R
-            bytes[i * 4 + 3] = 0xFF.toByte()        // A
+            bytes[i * 4 + 0] = info.buf[i * 3 + 2]
+            bytes[i * 4 + 1] = info.buf[i * 3 + 1]
+            bytes[i * 4 + 2] = info.buf[i * 3 + 0]
+            bytes[i * 4 + 3] = 0xFF.toByte()
         }
 
         return Image.makeRaster(
@@ -69,28 +61,29 @@ actual class Renderer {
     }
 
     actual fun outputSound(info: SoundInfo) {
-        line.write(info.buf, 0, info.sample * (info.bps / 8) * info.ch)
+        line?.write(info.buf, 0, info.sample * (info.bps / 8) * info.ch)
     }
 
     actual val soundBufferState: Int
         get() {
-            val rest = ((lineBufferSize - line.available()) / (sndi.bps / 8)
-                    / sndi.ch)
+            if (line == null) {
+                return 0
+            }
+
+            val rest = ((lineBufferSize - line.available()) / (sndi.bps / 8) / sndi.ch)
+
             if (rest < SAMPLES_PER_FRAME * BUFFER_FRAMES) return -1
             if (rest == SAMPLES_PER_FRAME * BUFFER_FRAMES) return 0
             return 1
         }
 
     init {
-        val format = AudioFormat(
-            SAMPLE_RATE.toFloat(), BPS, CHANNELS, true,
-            false
-        )
-        val info = DataLine.Info(SourceDataLine::class.java, format)
-        line = AudioSystem.getLine(info) as SourceDataLine
-        line.open()
-        line.start()
-        lineBufferSize = line.available()
+        line = getSound()
+        line?.run {
+            this.open()
+            this.start()
+            lineBufferSize = this.available()
+        }
 
         val bufSamples: Int = SAMPLES_PER_FRAME
 
@@ -101,6 +94,19 @@ actual class Renderer {
         sndi.sample = bufSamples
 
         inpi.buf = IntArray(16)
+    }
+
+    private fun getSound(): SourceDataLine? {
+        try {
+            val format = AudioFormat(
+                SAMPLE_RATE.toFloat(), BPS, CHANNELS, true,
+                false
+            )
+            val info = DataLine.Info(SourceDataLine::class.java, format)
+            return AudioSystem.getLine(info) as SourceDataLine
+        } catch (_: Exception) {
+            return null
+        }
     }
 
     actual fun onKey(keyCode: Key, press: Boolean) {
@@ -121,7 +127,7 @@ actual class Renderer {
         private const val BUFFER_FRAMES = 2
 
         private const val FPS = 60
-        private val SAMPLES_PER_FRAME: Int = SAMPLE_RATE / FPS
+        private const val SAMPLES_PER_FRAME: Int = SAMPLE_RATE / FPS
 
         val keyDef: Array<Array<Key>> = arrayOf(
             arrayOf(

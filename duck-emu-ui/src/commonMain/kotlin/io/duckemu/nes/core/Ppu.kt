@@ -127,9 +127,9 @@ class Ppu(var nes: Nes) {
 
     private fun renderBG(line: Int, buf: ByteArray) {
         val r = nes.regs
-        val x_ofs = r.ppuAdrX.toInt() and 7
-        val y_ofs = (r.ppuAdrV.toInt() shr 12) and 7
-        var name_adr = (r.ppuAdrV.toInt() and 0xfff).toShort()
+        val x_ofs = r.ppuAdrX and 7
+        val y_ofs = (r.ppuAdrV shr 12) and 7
+        var name_adr = (r.ppuAdrV and 0xfff).toShort()
         val pat_adr = (if (r.bgPatAdr) 0x1000 else 0x0000).toShort()
 
         var ix = -x_ofs

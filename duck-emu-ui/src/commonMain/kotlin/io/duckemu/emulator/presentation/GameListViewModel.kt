@@ -1,9 +1,9 @@
-package io.duckemu.gbc.presentation.emulator
+package io.duckemu.emulator.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.duckemu.gbc.data.game.Game
-import io.duckemu.gbc.data.game.GameRepository
+import io.duckemu.emulator.repository.game.Game
+import io.duckemu.emulator.repository.game.GameRepository
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.openFilePicker
@@ -17,7 +17,7 @@ class GameLibraryViewModel(
     private val repository: GameRepository
 ) : ViewModel() {
 
-    private val _console = MutableStateFlow(listOf("gbc", "gba", "nes"))
+    private val _console = MutableStateFlow(listOf("gb", "gbc", "gba", "nes"))
     val console: StateFlow<List<String>> = _console.asStateFlow()
 
     private val _gamesByConsole = MutableStateFlow<Map<String, List<Game>>>(emptyMap())
@@ -41,12 +41,6 @@ class GameLibraryViewModel(
 
                 _gamesByConsole.value = updatedMap
             }
-        }
-    }
-
-    fun loadGamesForConsole(directoryPath: String) {
-        viewModelScope.launch {
-            _gamesByConsole.value = _gamesByConsole.value
         }
     }
 }

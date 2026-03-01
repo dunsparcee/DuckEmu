@@ -519,8 +519,7 @@ actual class AudioInterface actual constructor() {
 
                 for (r in offset..<offset + length) {
                     val samplePos = (31 * cyclePos) / cycleLength
-                    value = BytesOperation.unsign(waveform[samplePos % 32])
-                        .toInt() shr volumeShift shl 1
+                    value = BytesOperation.unsign(waveform[samplePos % 32]) shr volumeShift shl 1
 
                     if ((channelAudio and CHAN_LEFT) != 0) b[r * 2] = (b[r * 2] + value).toByte()
                     if ((channelAudio and CHAN_RIGHT) != 0) b[r * 2 + 1] =

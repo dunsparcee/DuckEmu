@@ -33,7 +33,5 @@ expect class Renderer() {
     fun requestInput(padCount: Int, buttonCount: Int): InputInfo
     fun outputScreen(info: ScreenInfo): ImageBitmap
     fun outputSound(info: SoundInfo)
-    fun outputMessage(msg: String?)
-
     fun onKey(keyCode: Key, press: Boolean)
 }

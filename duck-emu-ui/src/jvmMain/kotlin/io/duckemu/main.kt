@@ -7,23 +7,26 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import io.duckemu.gbc.data.game.GameRepository
-import io.duckemu.gbc.presentation.emulator.EmulatorScreen
+import io.duckemu.emulator.presentation.EmulatorScreen
+import io.duckemu.emulator.presentation.GameLibraryScreen
+import io.duckemu.emulator.presentation.GameLibraryViewModel
+import io.duckemu.emulator.repository.game.GameRepository
 import io.duckemu.gbc.presentation.emulator.GameBoyViewModel
-import io.duckemu.gbc.presentation.emulator.GameLibraryScreen
-import io.duckemu.gbc.presentation.emulator.GameLibraryViewModel
 import io.duckemu.nes.core.NesViewModel
 import io.github.compose_keyhandler.KeyHandlerHost
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.openFilePicker
 import kotlinx.coroutines.launch
 
-
 fun main() = application {
-    val consoles: Map<String, EmulatorViewModel> = remember { mapOf(
-        "gbc" to GameBoyViewModel(),
-        "nes" to NesViewModel()
-    ) }
+    val consoles: Map<String, EmulatorViewModel> = remember {
+        mapOf(
+            "gb" to GameBoyViewModel,
+            "gbc" to GameBoyViewModel,
+            "nes" to NesViewModel
+        )
+    }
+
     val gameRepository = remember { GameRepository() }
     val gameLibrary = remember { GameLibraryViewModel(gameRepository) }
     val scope = rememberCoroutineScope()

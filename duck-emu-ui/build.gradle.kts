@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
+    alias(libs.plugins.serialization)
 }
 
 kotlin {
@@ -30,11 +31,19 @@ kotlin {
     jvm()
     
     sourceSets {
+        val ktorVersion = "3.0.0"
+
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+            implementation("io.ktor:ktor-client-okhttp:${ktorVersion}")
         }
         commonMain.dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.10.0")
+            implementation("io.ktor:ktor-client-core:${ktorVersion}")
+            implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:${ktorVersion}")
+            implementation("io.ktor:ktor-client-logging:${ktorVersion}")
             implementation("com.squareup.okio:okio:3.9.0")
             implementation(libs.lexilabs.basic.sound)
             implementation("io.coil-kt.coil3:coil-compose:3.0.0")
@@ -58,7 +67,6 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation("io.ktor:ktor-client-java:3.0.0")
-
         }
     }
 }

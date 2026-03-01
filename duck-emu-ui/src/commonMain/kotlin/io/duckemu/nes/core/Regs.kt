@@ -58,11 +58,11 @@ class Regs(private val nes: Nes) {
 
     fun endScanline() {
         if (bgVisible || spriteVisible) {
-            if (((ppuAdrV.toInt() shr 12) and 7) == 7) {
-                ppuAdrV = ppuAdrV.toInt() and 0x7000.inv()
-                if (((ppuAdrV.toInt() shr 5) and 0x1f) == 29) ppuAdrV =
+            if (((ppuAdrV shr 12) and 7) == 7) {
+                ppuAdrV = ppuAdrV and 0x7000.inv()
+                if (((ppuAdrV shr 5) and 0x1f) == 29) ppuAdrV =
                     ((ppuAdrV and 0x03e0.inv()) xor 0x800)
-                else if (((ppuAdrV.toInt() shr 5) and 0x1f) == 31) ppuAdrV = ppuAdrV.toInt() and 0x03e0.inv()
+                else if (((ppuAdrV shr 5) and 0x1f) == 31) ppuAdrV = ppuAdrV and 0x03e0.inv()
                 else ppuAdrV = (ppuAdrV + 0x20)
             } else ppuAdrV = (ppuAdrV + 0x1000)
         }

@@ -1,12 +1,9 @@
 package io.duckemu.gbc.presentation.emulator
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.key.Key
-import io.duckemu.Emulator
 import io.duckemu.EmulatorViewModel
 import io.duckemu.gbc.data.emulator.Controller
 import io.duckemu.gbc.data.emulator.DuckEmuConfig
@@ -16,13 +13,14 @@ import io.github.compose_keyhandler.KeyActionBuilder
 import io.github.compose_keyhandler.KeyHandler
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.extension
 import io.github.vinceglb.filekit.path
 import io.github.vinceglb.filekit.readBytes
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.SYSTEM
 
-class GameBoyViewModel : EmulatorViewModel() {
+object GameBoyViewModel : EmulatorViewModel() {
     var isRunning by mutableStateOf(false)
     private var gameBoy: GameBoy? = null
     val inputHandler = Controller()
@@ -32,7 +30,7 @@ class GameBoyViewModel : EmulatorViewModel() {
     override suspend fun start(path: PlatformFile) {
         stop()
         val cartridgeBin = path.readBytes()
-        val isGbc = DuckEmuConfig.color_style != "GB" && DuckEmuConfig.color_style != "GBP"
+        val isGbc = path.extension.contains("gbc")
         val palette = if (DuckEmuConfig.color_style == "GBP") Colors.GBP else Colors.GB
 
         gameBoy = GameBoy(isGbc, palette, cartridgeBin, inputHandler) { image, _ ->

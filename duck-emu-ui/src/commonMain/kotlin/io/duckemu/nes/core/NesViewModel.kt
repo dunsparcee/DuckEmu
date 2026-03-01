@@ -15,7 +15,7 @@ import io.github.vinceglb.filekit.path
 import kotlinx.coroutines.*
 import kotlin.time.Clock
 
-class NesViewModel : EmulatorViewModel() {
+object NesViewModel : EmulatorViewModel() {
     private var nes: Nes? = null
     var isRunning by mutableStateOf(false)
 
@@ -35,21 +35,21 @@ class NesViewModel : EmulatorViewModel() {
 
     fun run() {
         val fps = 60
+        val frameDurationMs = 500.0 / fps
 
         while (true) {
-            val start = Clock.System.now().nanosecondsOfSecond
+            val start = Clock.System.now().toEpochMilliseconds()
             graphics = nes?.execFrame()
 
             while (true) {
                 val bufStat = nes?.renderer?.soundBufferState
-                if (bufStat != null && bufStat < 0) {
-                    break
-                }
+                if (bufStat != null && bufStat < 0) break
+
                 if (bufStat == 0) {
-                    val elapsed = Clock.System.now().nanosecondsOfSecond - start
-                    val wait = ((1.0 / fps) * 1e9 - elapsed).toLong()
+                    val elapsed = Clock.System.now().toEpochMilliseconds() - start
+                    val wait = (frameDurationMs - elapsed).toLong()
                     if (wait > 0) {
-                        runBlocking { delay(wait / 1_000_000L) }
+                        runBlocking { delay(wait) }
                     }
                     break
                 }

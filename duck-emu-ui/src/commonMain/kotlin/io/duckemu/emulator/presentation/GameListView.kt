@@ -1,4 +1,4 @@
-package io.duckemu.gbc.presentation.emulator
+package io.duckemu.emulator.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -10,14 +10,18 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.decodeToImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -25,14 +29,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import coil3.compose.AsyncImage
 import duckemu.duck_emu_ui.generated.resources.Res
 import duckemu.duck_emu_ui.generated.resources.gb
 import duckemu.duck_emu_ui.generated.resources.gba
 import duckemu.duck_emu_ui.generated.resources.nes
+import duckemu.duck_emu_ui.generated.resources.no_cover
 import io.duckemu.EmulatorViewModel
-import io.duckemu.gbc.data.game.Game
-import io.github.vinceglb.filekit.FileKit
+import io.duckemu.emulator.repository.game.Game
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -98,13 +101,14 @@ private fun ConsoleCard(console: String, games: List<Game>, onSelectGame: (Game)
     var showDialog by remember { mutableStateOf(false) }
 
     val consoleImage = when (console) {
-        "gbc" -> Res.drawable.gb
+        "gb" -> Res.drawable.gb
         "gba" -> Res.drawable.gba
         "nes" -> Res.drawable.nes
         else -> Res.drawable.gb
     }
 
     val consoleName = when (console) {
+        "gb" -> "GameBoy"
         "gbc" -> "GameBoy Color"
         "gba" -> "GameBoy Advance"
         "nes" -> "Nintendo"
@@ -143,7 +147,7 @@ private fun ConsoleCard(console: String, games: List<Game>, onSelectGame: (Game)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 150.dp),
+                        columns = GridCells.Adaptive(minSize = 200.dp),
                         horizontalArrangement = Arrangement.spacedBy(5.dp),
                         verticalArrangement = Arrangement.spacedBy(5.dp),
                         modifier = Modifier.weight(1f)
@@ -172,35 +176,32 @@ fun GameCard(
     onClick: (Game) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val painter = remember(game.coverImage) {
+        game.coverImage?.let { BitmapPainter(it.decodeToImageBitmap()) }
+    }
+
     Card(
         modifier = modifier
-            .width(150.dp)
             .clip(RoundedCornerShape(10.dp))
             .clickable { onClick(game) }
-            .padding(10.dp),
-        shape = RoundedCornerShape(12.dp),
     ) {
         Column(
             modifier = Modifier
-                .padding(12.dp)
+                .padding(bottom = 5.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .background(Color(0xFF2D2D2D)),
-                contentAlignment = Alignment.Center
-            ) {
-                AsyncImage(
-                    model = game.iconPath,
-                    contentDescription = game.cropName(),
-                    contentScale = ContentScale.Fit,
-                    filterQuality = FilterQuality.High
-                )
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Image(
+                painter = painter ?: painterResource(Res.drawable.no_cover),
+                contentDescription = game.cropName(),
+                modifier = modifier.fillMaxWidth()
+            )
+        }
 
+        Column(
+            modifier = Modifier.padding(horizontal = 5.dp)
+        ) {
             Text(
-                text = game.cropName(),
+                text = game.name,
                 color = Color.DarkGray,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -209,17 +210,11 @@ fun GameCard(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = game.size,
-                    color = Color.DarkGray,
-                    fontSize = 13.sp
-                )
-            }
+            Text(
+                text = game.size,
+                color = Color.DarkGray,
+                fontSize = 13.sp
+            )
 
             game.playTime?.let { playTime ->
                 Spacer(modifier = Modifier.height(4.dp))
