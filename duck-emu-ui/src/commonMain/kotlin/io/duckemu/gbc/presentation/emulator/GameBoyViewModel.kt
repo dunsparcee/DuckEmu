@@ -46,6 +46,7 @@ object GameBoyViewModel : EmulatorViewModel() {
                 setSarm(file.readBytes())
             }
 
+
             startup()
         }
         isRunning = true

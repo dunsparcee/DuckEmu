@@ -2,6 +2,7 @@ package io.duckemu.emulator.repository.game
 
 import kotlinx.serialization.Serializable
 
+@Serializable
 data class Game(
     val name: String,
     val title: String,

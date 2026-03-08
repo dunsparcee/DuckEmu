@@ -30,7 +30,6 @@ class GameRepository(
         getGameInfo(directory)
     }
 
-
     private suspend fun getGameInfo(file: PlatformFile): Game {
         val title = getTitle(file.readBytes())
 
@@ -55,6 +54,7 @@ class GameRepository(
             }
 
             is NetworkResult.Failure -> {
+                println(response.errorMessage)
                 null
             }
         }

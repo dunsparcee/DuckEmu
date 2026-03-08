@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -29,8 +30,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import duckemu.duck_emu_ui.generated.resources.Res
 import duckemu.duck_emu_ui.generated.resources.gb
+import duckemu.duck_emu_ui.generated.resources.gbc
 import duckemu.duck_emu_ui.generated.resources.gba
 import duckemu.duck_emu_ui.generated.resources.nes
 import duckemu.duck_emu_ui.generated.resources.no_cover
@@ -102,6 +105,7 @@ private fun ConsoleCard(console: String, games: List<Game>, onSelectGame: (Game)
 
     val consoleImage = when (console) {
         "gb" -> Res.drawable.gb
+        "gbc" -> Res.drawable.gbc
         "gba" -> Res.drawable.gba
         "nes" -> Res.drawable.nes
         else -> Res.drawable.gb
@@ -136,8 +140,11 @@ private fun ConsoleCard(console: String, games: List<Game>, onSelectGame: (Game)
     }
 
     if (showDialog) {
-        Dialog(onDismissRequest = { showDialog = false }) {
-            Card(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.5f)) {
+        Dialog(
+            onDismissRequest = { showDialog = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Card(modifier = Modifier.fillMaxSize(0.8f)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "$consoleName List",
@@ -181,46 +188,39 @@ fun GameCard(
     }
 
     Card(
-        modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .clickable { onClick(game) }
+        modifier = modifier.clickable { onClick(game) },
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF2D2D2D))
     ) {
-        Column(
-            modifier = Modifier
-                .padding(bottom = 5.dp)
-        ) {
-
+        Column {
             Image(
                 painter = painter ?: painterResource(Res.drawable.no_cover),
                 contentDescription = game.cropName(),
-                modifier = modifier.fillMaxWidth()
-            )
-        }
-
-        Column(
-            modifier = Modifier.padding(horizontal = 5.dp)
-        ) {
-            Text(
-                text = game.name,
-                color = Color.DarkGray,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f),
+                contentScale = ContentScale.Crop
             )
 
-            Text(
-                text = game.size,
-                color = Color.DarkGray,
-                fontSize = 13.sp
-            )
+            Column(modifier = Modifier.padding(8.dp)) {
+                Text(
+                    text = game.name,
+                    color = Color.LightGray,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            game.playTime?.let { playTime ->
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Text(
+                    text = game.size,
+                    color = Color.LightGray,
+                    fontSize = 13.sp
+                )
+
+                game.playTime?.let { playTime ->
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = playTime,
                         color = Color(0xFFAAAAAA),

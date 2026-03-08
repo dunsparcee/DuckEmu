@@ -39,6 +39,9 @@ kotlin {
             implementation("io.ktor:ktor-client-okhttp:${ktorVersion}")
         }
         commonMain.dependencies {
+            implementation("io.github.xxfast:kstore:1.0.0")
+            implementation("io.github.xxfast:kstore-file:1.0.0")
+            implementation("org.jetbrains.compose.material:material-icons-extended:1.7.3")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.10.0")
             implementation("io.ktor:ktor-client-core:${ktorVersion}")
             implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")

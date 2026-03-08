@@ -1,10 +1,10 @@
-package io.duckemu.gbc.audio
+package io.duckemu.gbc.domain.audio
 
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
-import io.duckemu.gbc.BytesOperation
-import io.duckemu.gbc.addons.Speed
+import io.duckemu.gbc.data.addons.Speed
+import io.duckemu.gbc.utils.BytesOperation
 import java.util.Random
 import kotlin.math.max
 
@@ -539,8 +539,7 @@ public actual class AudioInterface actual constructor() {
 
                 for (r in offset..<offset + length) {
                     val samplePos = (31 * cyclePos) / cycleLength
-                    value = BytesOperation.unsign(waveform[samplePos % 32])
-                        .toInt() shr volumeShift shl 1
+                    value = BytesOperation.unsign(waveform[samplePos % 32]) shr volumeShift shl 1
 
                     if ((channelAudio and CHAN_LEFT) != 0) b[r * 2] = (b[r * 2] + value).toByte()
                     if ((channelAudio and CHAN_RIGHT) != 0) b[r * 2 + 1] = (b[r * 2 + 1] + value).toByte()

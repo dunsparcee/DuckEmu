@@ -376,7 +376,7 @@ class Apu(private val nes: Nes) {
 
     fun sqProduce(cc: ChState, clk: Double): Double {
         cc.stepClk += clk
-        val ret: Double = (0.5 - sqWav.get(cc.duty)[cc.step]!!)
+        val ret: Double = (0.5 - sqWav.get(cc.duty)[cc.step])
         val term = (cc.waveLength + 1).toDouble()
         if (cc.stepClk >= term) {
             val t = (cc.stepClk / term).toInt()

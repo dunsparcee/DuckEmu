@@ -10,6 +10,7 @@ import androidx.compose.ui.window.application
 import io.duckemu.emulator.presentation.EmulatorScreen
 import io.duckemu.emulator.presentation.GameLibraryScreen
 import io.duckemu.emulator.presentation.GameLibraryViewModel
+import io.duckemu.emulator.repository.config.ConfigRepository
 import io.duckemu.emulator.repository.game.GameRepository
 import io.duckemu.gbc.presentation.emulator.GameBoyViewModel
 import io.duckemu.nes.core.NesViewModel
@@ -28,7 +29,7 @@ fun main() = application {
     }
 
     val gameRepository = remember { GameRepository() }
-    val gameLibrary = remember { GameLibraryViewModel(gameRepository) }
+    val gameLibrary = remember { GameLibraryViewModel(gameRepository, ConfigRepository()) }
     val scope = rememberCoroutineScope()
 
     Window(onCloseRequest = ::exitApplication, title = "DuckEmu") {
