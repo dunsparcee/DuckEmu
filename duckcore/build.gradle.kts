@@ -59,6 +59,7 @@ graalvmNative {
 		named("main") {
 			buildArgs.addAll(
 				"-J-Xmx6g",
+				"-0b",
 				"-H:DeadlockWatchdogInterval=10", "-H:+DeadlockWatchdogExitOnTimeout"
 			)
 		}
