@@ -66,4 +66,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
 
 # Run the native binary
 # Replace 'duckemu-core' with your artifact name from settings.gradle.kts
-ENTRYPOINT ["./duckemu-core"]
+ENTRYPOINT ["./duckcore"]
