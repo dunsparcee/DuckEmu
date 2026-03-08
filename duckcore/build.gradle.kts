@@ -53,3 +53,16 @@ kotlin {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+graalvmNative {
+	binaries {
+		named("main") {
+			buildArgs.addAll(
+				"-J-Xmx8g",
+				"-J-Xms2g",
+				"--no-fallback",
+				"-J-XX:+UseSerialGC"
+			)
+		}
+	}
+}
