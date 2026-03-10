@@ -1,7 +1,7 @@
 # =============================================================================
 # Stage 1: Build the native image
 # =============================================================================
-FROM ghcr.io/graalvm/native-image-community:24-ol9 AS builder
+FROM ghcr.io/graalvm/native-image-community:25-ol9 AS builder
 
 # Install necessary build tools
 RUN microdnf install -y findutils tar gzip unzip && \
@@ -66,4 +66,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
 
 # Run the native binary
 # Replace 'duckemu-core' with your artifact name from settings.gradle.kts
-ENTRYPOINT ["./duckemu-core"]
+ENTRYPOINT ["./duckcore"]
