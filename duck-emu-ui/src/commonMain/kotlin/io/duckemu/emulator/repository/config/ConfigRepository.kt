@@ -13,7 +13,6 @@ class ConfigRepository(
 
     }
 
-
     suspend fun getGames(): Map<String, List<GameConfig>> {
         return store.get()?.games ?: mapOf()
     }
@@ -28,20 +27,20 @@ class ConfigRepository(
                     )
                 )
             )
-
-        store.update { config ->
-            if (config?.games[console] == null) {
-                config?.copy(
-                    games = config.games + (console to listOf(GameConfig(game)))
-                )
-            } else {
-                config.copy(
-                    games = config.games.toMutableMap().apply {
-                        this[console] = (this[console] ?: emptyList()) + GameConfig(game)
-                    }
-                )
+        else
+            store.update { config ->
+                if (config?.games[console] == null) {
+                    config?.copy(
+                        games = config.games + (console to listOf(GameConfig(game)))
+                    )
+                } else {
+                    config.copy(
+                        games = config.games.toMutableMap().apply {
+                            this[console] = (this[console] ?: emptyList()) + GameConfig(game)
+                        }
+                    )
+                }
             }
-        }
     }
 }
 

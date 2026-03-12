@@ -36,21 +36,21 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
-            implementation("io.ktor:ktor-client-okhttp:${ktorVersion}")
+            implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
-            implementation("io.github.xxfast:kstore:1.0.0")
-            implementation("io.github.xxfast:kstore-file:1.0.0")
+            implementation("media.kamel:kamel-image:1.0.9")
+            implementation(libs.kamel.image.default)
+            implementation(libs.kstore)
+            implementation(libs.kstore.file)
             implementation("org.jetbrains.compose.material:material-icons-extended:1.7.3")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.10.0")
-            implementation("io.ktor:ktor-client-core:${ktorVersion}")
-            implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")
-            implementation("io.ktor:ktor-serialization-kotlinx-json:${ktorVersion}")
-            implementation("io.ktor:ktor-client-logging:${ktorVersion}")
-            implementation("com.squareup.okio:okio:3.9.0")
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.logging)
+            implementation("com.squareup.okio:okio:3.17.0")
             implementation(libs.lexilabs.basic.sound)
-            implementation("io.coil-kt.coil3:coil-compose:3.0.0")
-            implementation("io.coil-kt.coil3:coil-network-ktor3:3.0.0")
             implementation(libs.filekit.ui)
             implementation(libs.filekit.core)
             implementation(libs.compose.keyhandler)
@@ -69,7 +69,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
-            implementation("io.ktor:ktor-client-java:3.0.0")
+            implementation(libs.ktor.client.java)
         }
     }
 }

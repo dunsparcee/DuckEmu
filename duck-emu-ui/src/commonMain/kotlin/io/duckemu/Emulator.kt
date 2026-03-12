@@ -20,4 +20,5 @@ interface Emulator {
 
 abstract class EmulatorViewModel : Emulator {
     var graphics by mutableStateOf<ImageBitmap?>(null)
+    var openSettings by mutableStateOf(false)
 }

@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
-import io.duckemu.emulator.presentation.MainMobileScreen
+import io.duckemu.emulator.presentation.MainScreen
 import io.duckemu.emulator.repository.config.appContext
 
 class MainActivity : ComponentActivity() {
@@ -14,7 +14,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                MainMobileScreen()
+                MainScreen(showSettings1 = showSettings)
             }
         }
     }

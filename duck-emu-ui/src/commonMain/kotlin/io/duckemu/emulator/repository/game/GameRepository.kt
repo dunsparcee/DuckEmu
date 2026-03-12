@@ -2,6 +2,7 @@ package io.duckemu.emulator.repository.game
 
 import io.duckemu.emulator.repository.game.http.NetworkResult
 import io.duckemu.emulator.repository.game.http.createHttpClient
+import io.duckemu.emulator.repository.game.http.defaultClient
 import io.duckemu.emulator.repository.game.http.safeRequest
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.extension
@@ -23,7 +24,7 @@ import kotlinx.coroutines.withContext
 
 
 class GameRepository(
-    private val client: HttpClient = createHttpClient()
+    private val client: HttpClient = defaultClient
 ) {
 
     suspend fun toGame(directory: PlatformFile): Game = withContext(Dispatchers.IO) {
@@ -34,7 +35,7 @@ class GameRepository(
         val title = getTitle(file.readBytes())
 
         val response: NetworkResult<GameResponse> = client.safeRequest {
-            get("http://localhost:8080/api/games/search") {
+            get("https://duckemu.onrender.com/api/games/search") {
                 url {
                     parameters.append("name", file.nameWithoutExtension)
                 }
@@ -42,15 +43,9 @@ class GameRepository(
             }
         }
 
-        val image : Pair<String, ByteArray?>? = when (response) {
+        val image : String? = when (response) {
             is NetworkResult.Success -> {
-                response.data.coverArt.let { url ->
-                    val encodedUrl = URLBuilder(url).apply {
-                        val filename = pathSegments.last().encodeURLPathPart()
-                        encodedPath = encodedPath.substringBeforeLast("/") + "/$filename"
-                    }.buildString()
-                    url to client.get(encodedUrl).body<ByteArray?>()
-                }
+                response.data.coverArt
             }
 
             is NetworkResult.Failure -> {
@@ -62,12 +57,12 @@ class GameRepository(
         return Game(
             name = file.nameWithoutExtension,
             title = title,
-            coverPath = image?.first,
+            coverPath = image,
             fileType = file.extension,
             size = "${file.size() / 1000 / 1000} mb",
             playTime = null,
             path = file.path,
-            coverImage = image?.second
+            coverImage = null
         )
     }
 

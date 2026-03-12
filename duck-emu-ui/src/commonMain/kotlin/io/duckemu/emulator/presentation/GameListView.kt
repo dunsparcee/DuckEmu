@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,7 +40,18 @@ import duckemu.duck_emu_ui.generated.resources.nes
 import duckemu.duck_emu_ui.generated.resources.no_cover
 import io.duckemu.EmulatorViewModel
 import io.duckemu.emulator.repository.game.Game
+import io.duckemu.emulator.repository.game.http.defaultClient
 import io.github.vinceglb.filekit.PlatformFile
+import io.kamel.core.getOrNull
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.http.URLBuilder
+import io.ktor.http.Url
+import io.ktor.http.encodeURLPathPart
+import io.ktor.http.encodedPath
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 
@@ -183,8 +195,16 @@ fun GameCard(
     onClick: (Game) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val painter = remember(game.coverImage) {
-        game.coverImage?.let { BitmapPainter(it.decodeToImageBitmap()) }
+    val gameCover = remember(game.coverPath) {
+        game.coverPath?.let { url ->
+            URLBuilder(url).apply {
+                val filename = pathSegments.last().encodeURLPathPart()
+                encodedPath = encodedPath.substringBeforeLast("/") + "/$filename"
+            }.buildString()
+        }
+    }
+    val painterResource = gameCover?.let {
+        asyncPainterResource(data = it)
     }
 
     Card(
@@ -194,7 +214,7 @@ fun GameCard(
     ) {
         Column {
             Image(
-                painter = painter ?: painterResource(Res.drawable.no_cover),
+                painter = painterResource?.getOrNull() ?: painterResource(Res.drawable.no_cover),
                 contentDescription = game.cropName(),
                 modifier = Modifier
                     .fillMaxWidth()

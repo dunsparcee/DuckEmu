@@ -11,7 +11,7 @@ data class Game(
     val size: String,
     val playTime: String?,
     val path: String,
-    val coverImage: ByteArray?,
+    var coverImage: ByteArray?,
 ) {
     fun cropName(): String {
         val split = name.split(" ")

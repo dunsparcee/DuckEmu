@@ -87,6 +87,9 @@ object NesViewModel : EmulatorViewModel() {
     fun setupKeyHandler(): KeyHandler {
         return KeyHandler {
             onPress {
+                key(Key.Escape) {
+                    openSettings = !openSettings
+                }
                 keys(true)
             }
             onRelease {

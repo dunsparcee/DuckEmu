@@ -5,16 +5,9 @@ package io.duckemu.nes.core.ui
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.key.Key
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
-import java.awt.Frame
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
-import java.awt.image.BufferedImage
-import java.awt.image.DataBufferByte
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.DataLine
@@ -110,7 +103,7 @@ actual class Renderer {
     }
 
     actual fun onKey(keyCode: Key, press: Boolean) {
-        for (i in 0..1) for (j in 0..7) if (keyCode == keyDef[i][j]) inpi.buf[i * 8 + j] = (if (press) 1 else 0)
+        for (i in 0..1) for (j in 0..7) if (keyCode == keysPlayers[i][j]) inpi.buf[i * 8 + j] = (if (press) 1 else 0)
     }
 
     actual fun requestInput(padCount: Int, buttonCount: Int): InputInfo {
@@ -129,7 +122,7 @@ actual class Renderer {
         private const val FPS = 60
         private const val SAMPLES_PER_FRAME: Int = SAMPLE_RATE / FPS
 
-        val keyDef: Array<Array<Key>> = arrayOf(
+        val keysPlayers: Array<Array<Key>> = arrayOf(
             arrayOf(
                 Key.Z, Key.X, Key.ShiftLeft,
                 Key.Enter, Key.DirectionUp, Key.DirectionDown,

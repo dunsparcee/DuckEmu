@@ -1,24 +1,20 @@
 package io.duckemu.emulator.presentation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,7 +25,7 @@ import io.duckemu.emulator.repository.game.GameRepository
 import io.duckemu.gbc.presentation.emulator.GameBoySkin
 import io.duckemu.gbc.presentation.emulator.GameBoyViewModel
 import io.duckemu.gbc.presentation.emulator.GbcPurple
-import io.duckemu.gbc.presentation.emulator.setupKeyHandler
+import io.duckemu.gbc.presentation.emulator.nes.NesSkin
 import io.duckemu.nes.core.NesViewModel
 import io.github.compose_keyhandler.KeyHandlerHost
 import io.github.vinceglb.filekit.PlatformFile
@@ -39,25 +35,28 @@ import kotlinx.coroutines.launch
 val BackgroundDark = Color(0xFF1F1F1F)
 val CardDark = Color(0xFF2A2A2A)
 
+data class ConsoleEntry(
+    val emulator: EmulatorViewModel,
+    val mobileSkin: @Composable () -> Unit
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainMobileScreen() {
-    val consoles: Map<String, EmulatorViewModel> = remember {
+fun MainScreen(mobileDevice: Boolean = false) {
+    var showSettings by remember { mutableStateOf(false) }
+    val consoles: Map<String, ConsoleEntry> = remember {
         mapOf(
-            "gb" to GameBoyViewModel,
-            "gbc" to GameBoyViewModel,
-            "nes" to NesViewModel
+            "gb" to ConsoleEntry(GameBoyViewModel) { GameBoySkin(GameBoyViewModel) },
+            "gbc" to ConsoleEntry(GameBoyViewModel) { GameBoySkin(GameBoyViewModel) },
+            "nes" to ConsoleEntry(NesViewModel) { NesSkin(NesViewModel) }
         )
     }
 
-    val gbController = remember { GameBoyViewModel }
     val config = remember { ConfigRepository() }
     val gameRepository = remember { GameRepository() }
     val gameLibraryViewModel = remember { GameLibraryViewModel(gameRepository, config) }
     gameLibraryViewModel.loadConfig()
-    val keyHandler = remember { setupKeyHandler(gbController) }
     val scope = rememberCoroutineScope()
-    var showSettings by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val games by gameLibraryViewModel.gamesByConsole.collectAsState()
@@ -68,39 +67,51 @@ fun MainMobileScreen() {
         }
     }
 
-    KeyHandlerHost(keyHandler) {
-        Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
 
-            if (gbController.isRunning) {
-                GameBoySkin(gbController)
-            } else {
+        consoles.values.find { it.emulator.isEmuRunning() }?.let {
+            KeyHandlerHost(it.emulator.controllerSetup()) {
+                Box {
+                    if (it.emulator.openSettings)
+                        showSettings = true
+
+                    if (mobileDevice)
+                        it.mobileSkin.invoke()
+                    else
+                        EmulatorScreen(it.emulator)
+                }
+            }
+        } ?: run {
+            Box {
                 DuckEmuHome(
                     games = games,
                     onOpenRom = { launcher.launch() },
                     onSettings = { showSettings = true },
                     onGameClick = { game ->
                         scope.launch {
-                            consoles[game.fileType]?.start(PlatformFile(game.path))
+                            consoles[game.fileType]?.emulator?.start(PlatformFile(game.path))
                         }
                     }
                 )
             }
+        }
 
-            if (showSettings) {
-                ModalBottomSheet(
-                    onDismissRequest = { showSettings = false },
-                    sheetState = sheetState,
-                    containerColor = DuckEmuGray,
-                    dragHandle = { },
-                    shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
-                    modifier = Modifier.statusBarsPadding()
-                ) {
-                    DeltaSettingsScreen(onClose = {
-                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                            if (!sheetState.isVisible) showSettings = false
+        if (showSettings) {
+            ModalBottomSheet(
+                onDismissRequest = { showSettings = false },
+                sheetState = sheetState,
+                containerColor = DuckEmuGray,
+                dragHandle = { },
+                shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
+                modifier = Modifier.statusBarsPadding().fillMaxWidth()
+            ) {
+                DeltaSettingsScreen(onClose = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                            showSettings = false
                         }
-                    })
-                }
+                    }
+                })
             }
         }
     }
@@ -194,10 +205,11 @@ fun DuckEmuHome(
                 }
             }
         } else {
+            val grid = if (LocalWindowInfo.current.containerSize.width > 600) GridCells.Fixed(5) else GridCells.Fixed(2)
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
+                columns = grid,
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -205,7 +217,7 @@ fun DuckEmuHome(
                     console.value.forEach { it ->
                         if (searchQuery.isBlank()) {
                             item {
-                                GameCard(it,{ onGameClick(it) })
+                                GameCard(it, { onGameClick(it) })
                             }
                         }
                     }

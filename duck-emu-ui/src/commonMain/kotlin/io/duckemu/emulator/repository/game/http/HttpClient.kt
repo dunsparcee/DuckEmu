@@ -16,3 +16,5 @@ fun createHttpClient(): HttpClient {
         }
     }
 }
+
+val defaultClient = createHttpClient()
