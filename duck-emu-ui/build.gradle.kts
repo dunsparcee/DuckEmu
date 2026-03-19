@@ -31,25 +31,23 @@ kotlin {
     jvm()
     
     sourceSets {
-        val ktorVersion = "3.0.0"
-
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
-            implementation("media.kamel:kamel-image:1.0.9")
+            implementation(libs.kamel.image)
             implementation(libs.kamel.image.default)
             implementation(libs.kstore)
             implementation(libs.kstore.file)
-            implementation("org.jetbrains.compose.material:material-icons-extended:1.7.3")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.10.0")
+            implementation(libs.material.icons.extended)
+            implementation(libs.kotlinx.serialization.core)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
-            implementation("com.squareup.okio:okio:3.17.0")
+            implementation(libs.okio)
             implementation(libs.lexilabs.basic.sound)
             implementation(libs.filekit.ui)
             implementation(libs.filekit.core)
