@@ -14,7 +14,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                MainScreen(showSettings1 = showSettings)
+                MainScreen(mobileDevice = true)
             }
         }
     }

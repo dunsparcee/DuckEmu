@@ -92,11 +92,5 @@ class Nes(
     val apu: Apu = Apu(this)
     val mbc: Mbc = Mbc(this)
     val regs: Regs = Regs(this)
-    var mapper: Mapper?
-        private set
-
-    init {
-        mapper = null
-    }
-
+    var mapper: Mapper? = null
 }

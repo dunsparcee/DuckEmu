@@ -51,7 +51,12 @@ class Rom() {
         vram = ByteArray(0x2000)
 
         if (romSize > 0 && this.rom != null) dat.copyInto(this.rom!!, 0, 16, 16 + romSize)
-        if (chrSize > 0 && this.chr != null) dat.copyInto(this.chr!!, 0, 16 + romSize, 16 + romSize + chrSize)
+        if (chrSize > 0 && this.chr != null) dat.copyInto(
+            this.chr!!,
+            0,
+            16 + romSize,
+            16 + romSize + chrSize
+        )
     }
 
     fun saveSram(fname: String?) {
