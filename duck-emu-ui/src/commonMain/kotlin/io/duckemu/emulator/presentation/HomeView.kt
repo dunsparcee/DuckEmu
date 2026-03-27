@@ -43,33 +43,36 @@ data class ConsoleEntry(
     val mobileSkin: @Composable () -> Unit
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MainScreen(mobileDevice: Boolean = false) {
-    var showSettings by remember { mutableStateOf(false) }
-    val consoles: Map<String, ConsoleEntry> = remember {
-        mapOf(
-            "gb" to ConsoleEntry(GameBoyViewModel) { GameBoySkin(GameBoyViewModel) },
-            "gbc" to ConsoleEntry(GameBoyViewModel) { GameBoySkin(GameBoyViewModel) },
-            "nes" to ConsoleEntry(NesViewModel) { NesSkin(NesViewModel) }
-        )
-    }
+object MainViewModel {
+    var consoleRunning: ConsoleEntry? = null
 
-    val config = remember { ConfigRepository() }
-    val gameRepository = remember { GameRepository() }
-    val gameLibraryViewModel = remember { GameLibraryViewModel(gameRepository, config) }
-    gameLibraryViewModel.loadConfig()
-    val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val games by gameLibraryViewModel.gamesByConsole.collectAsState()
-
-    val launcher = rememberFilePickerLauncher { file ->
-        file?.let {
-            gameLibraryViewModel.addGame(file)
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun MainScreen(mobileDevice: Boolean = false) {
+        var showSettings by remember { mutableStateOf(false) }
+        val consoles: Map<String, ConsoleEntry> = remember {
+            mapOf(
+                "gb" to ConsoleEntry(GameBoyViewModel) { GameBoySkin(GameBoyViewModel) },
+                "gbc" to ConsoleEntry(GameBoyViewModel) { GameBoySkin(GameBoyViewModel) },
+                "nes" to ConsoleEntry(NesViewModel) { NesSkin(NesViewModel) }
+            )
         }
-    }
 
-    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        val config = remember { ConfigRepository() }
+        val gameRepository = remember { GameRepository() }
+        val gameLibraryViewModel = remember { GameLibraryViewModel(gameRepository, config) }
+        gameLibraryViewModel.loadConfig()
+        val scope = rememberCoroutineScope()
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val games by gameLibraryViewModel.gamesByConsole.collectAsState()
+
+        val launcher = rememberFilePickerLauncher { file ->
+            file?.let {
+                gameLibraryViewModel.addGame(file)
+            }
+        }
+
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
 
         consoles.values.find { it.emulator.isEmuRunning() }?.let {
             KeyHandlerHost(it.emulator.controllerSetup()) {
@@ -77,49 +80,53 @@ fun MainScreen(mobileDevice: Boolean = false) {
                     if (it.emulator.openSettings)
                         showSettings = true
 
-                    if (mobileDevice)
-                        it.mobileSkin.invoke()
-                    else
-                        EmulatorScreen(it.emulator)
+                        if (mobileDevice)
+                            it.mobileSkin.invoke()
+                        else
+                            EmulatorScreen(it.emulator)
+                    }
+                }
+            } ?: run {
+                Box {
+                    DuckEmuHome(
+                        games = games,
+                        onOpenRom = { launcher.launch() },
+                        onSettings = { showSettings = true },
+                        onGameClick = { game ->
+                            scope.launch {
+                                consoles[game.fileType]?.let {
+                                    consoleRunning = it
+                                    it.emulator.start(PlatformFile(game.path))
+                                }
+                            }
+                        }
+                    )
                 }
             }
-        } ?: run {
-            Box {
-                DuckEmuHome(
-                    games = games,
-                    onOpenRom = { launcher.launch() },
-                    onSettings = { showSettings = true },
-                    onGameClick = { game ->
-                        scope.launch {
-                            consoles[game.fileType]?.emulator?.start(PlatformFile(game.path))
-                        }
-                    }
-                )
-            }
-        }
 
-        if (showSettings) {
-            ModalBottomSheet(
-                onDismissRequest = {
-                    showSettings = false
-                    consoles.values.find { it.emulator.isEmuRunning() }
-                        ?.emulator?.let { it.openSettings = false }
-                },
-                sheetState = sheetState,
-                containerColor = DuckEmuGray,
-                dragHandle = { },
-                shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
-                modifier = Modifier.statusBarsPadding().fillMaxWidth()
-            ) {
-                DeltaSettingsScreen(onClose = {
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            showSettings = false
-                            consoles.values.find { it.emulator.isEmuRunning() }
-                                ?.emulator?.let { it.openSettings = false }
+            if (showSettings) {
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        showSettings = false
+                        consoles.values.find { it.emulator.isEmuRunning() }
+                            ?.emulator?.let { it.openSettings = false }
+                    },
+                    sheetState = sheetState,
+                    containerColor = DuckEmuGray,
+                    dragHandle = { },
+                    shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
+                    modifier = Modifier.statusBarsPadding().fillMaxWidth()
+                ) {
+                    DeltaSettingsScreen(onClose = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                showSettings = false
+                                consoles.values.find { it.emulator.isEmuRunning() }
+                                    ?.emulator?.let { it.openSettings = false }
+                            }
                         }
-                    }
-                })
+                    })
+                }
             }
         }
     }

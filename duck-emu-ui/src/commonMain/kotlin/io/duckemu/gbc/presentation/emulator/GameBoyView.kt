@@ -1,5 +1,6 @@
 package io.duckemu.gbc.presentation.emulator
 
+import kotlinx.serialization.SerialName
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -13,8 +14,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.List
@@ -36,6 +39,7 @@ import androidx.compose.material.icons.filled.TransitEnterexit
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -52,12 +56,68 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.duckemu.Emulator
 import io.duckemu.EmulatorViewModel
 import io.duckemu.emulator.presentation.DuckEmuBlack
 import io.duckemu.emulator.presentation.EmulatorScreen
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed class ControllerTheme {
+    abstract val backgroundColorArgb: Int
+    abstract val buttonColorArgb: Int
+    abstract val backgroundAlpha: Float
+
+    @Serializable
+    @SerialName("gbc")
+    data class GBC(
+        override val backgroundColorArgb: Int = 0xFF3978F5.toInt(),
+        override val buttonColorArgb: Int = 0xFFD1D1D1.toInt(),
+        override val backgroundAlpha: Float = 1f,
+        val actionButtonSize: Float = 80f,
+        val dpadSize: Float = 150f,
+        val dpadX: Float = 30f,
+        val dpadY: Float = 0f,
+        val aX: Float = -10f,
+        val aY: Float = -20f,
+        val bX: Float = -10f,
+        val bY: Float = 40f,
+        val smallButtonWidth: Float = 35f,
+        val startSelectX: Float = 0f,
+        val startSelectY: Float = 0f
+    ) : ControllerTheme() {
+        val backgroundColor get() = Color(backgroundColorArgb)
+        val buttonColor     get() = Color(buttonColorArgb)
+    }
+
+    @Serializable
+    @SerialName("gba")
+    data class GBA(
+        override val backgroundColorArgb: Int = 0xFF222222.toInt(),
+        override val buttonColorArgb: Int = 0xFFD1D1D1.toInt(),
+        override val backgroundAlpha: Float = 1f,
+        val actionButtonSize: Float = 80f,
+        val dpadSize: Float = 150f,
+        val lButtonOffsetX: Float = 0f,
+        val rButtonOffsetX: Float = 0f,
+    ) : ControllerTheme()
+
+    @Serializable
+    @SerialName("n64")
+    data class N64(
+        override val backgroundColorArgb: Int = 0xFF111111.toInt(),
+        override val buttonColorArgb: Int = 0xFFD1D1D1.toInt(),
+        override val backgroundAlpha: Float = 1f,
+        val analogStickSize: Float = 100f,
+        val analogOffsetX: Float = 0f,
+        val analogOffsetY: Float = 0f,
+        val cButtonSize: Float = 40f,
+        val dpadSize: Float = 100f,
+    ) : ControllerTheme()
+}
 
 val GbcPurple = Color(0xFF3978F5)
 val ButtonGray = Color(0xFFD1D1D1)
@@ -148,9 +208,12 @@ fun MenuGridContent(
     }
 }
 var color = Color(0xEE001932);
+
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun GameBoySkin(viewModel: GameBoyViewModel) {
+    val theme = viewModel.controllerTheme as? ControllerTheme.GBC ?: ControllerTheme.GBC()
+
     val sheetState = rememberModalBottomSheetState()
     var showSheet by remember { mutableStateOf(false) }
 
@@ -166,15 +229,12 @@ fun GameBoySkin(viewModel: GameBoyViewModel) {
                     .fillMaxWidth()
                     .fillMaxHeight(0.5f)
                     .padding(horizontal = 16.dp),
-                onClose = {showSheet = false}
+                onClose = { showSheet = false }
             )
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -188,11 +248,17 @@ fun GameBoySkin(viewModel: GameBoyViewModel) {
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1.2f)
-                .background(GbcPurple)
+                .background(theme.backgroundColor.copy(alpha = theme.backgroundAlpha))
                 .padding(bottom = 40.dp)
         ) {
-            Box(Modifier.align(Alignment.CenterStart).padding(start = 30.dp)) {
+            Box(
+                Modifier
+                    .align(Alignment.CenterStart)
+                    .offset(x = theme.dpadX.dp, y = theme.dpadY.dp)
+            ) {
                 DPad(
+                    size = theme.dpadSize.dp,
+                    color = theme.buttonColor,
                     onPress = { upDown(viewModel.inputHandler, true, it) },
                     onRelease = { upDown(viewModel.inputHandler, false, it) }
                 )
@@ -210,18 +276,25 @@ fun GameBoySkin(viewModel: GameBoyViewModel) {
                 )
             }
 
-
-            Box(Modifier.align(Alignment.CenterEnd).padding(end = 20.dp)) {
+            Box(
+                Modifier
+                    .align(Alignment.CenterEnd)
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     ActionButton(
-                        "B",
-                        modifier = Modifier.offset(y = 40.dp),
+                        label = "B",
+                        size = theme.actionButtonSize.dp,
+                        color = theme.buttonColor,
+                        modifier = Modifier.offset(y = theme.bY.dp, x = theme.bX.dp),
                         onPress = { viewModel.inputHandler.buttonPressed(4) },
-                        onRelease = { viewModel.inputHandler.buttonRelease(4) })
+                        onRelease = { viewModel.inputHandler.buttonRelease(4) }
+                    )
                     Spacer(Modifier.width(15.dp))
                     ActionButton(
-                        "A",
-                        modifier = Modifier.offset(y = (-20).dp),
+                        label = "A",
+                        size = theme.actionButtonSize.dp,
+                        color = theme.buttonColor,
+                        modifier = Modifier.offset(y = theme.aY.dp, x = theme.aX.dp),
                         onPress = { viewModel.inputHandler.buttonPressed(5) },
                         onRelease = { viewModel.inputHandler.buttonRelease(5) }
                     )
@@ -235,35 +308,37 @@ fun GameBoySkin(viewModel: GameBoyViewModel) {
                     .padding(bottom = 20.dp, start = 20.dp, end = 20.dp)
             ) {
                 Column(verticalArrangement = Arrangement.Center) {
-                    IconButton(
-                        onClick = { showSheet = true }
-                    ) {
+                    IconButton(onClick = { showSheet = true }) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Settings",
                             tint = Color(0xFF444444),
-                            modifier = Modifier.size(28.dp)
-                                .background(
-                                    Color.White.copy(alpha = 0.15f),
-                                    CircleShape
-                                ).clip(CircleShape)
+                            modifier = Modifier
+                                .size(28.dp)
+                                .background(Color.White.copy(alpha = 0.15f), CircleShape)
+                                .clip(CircleShape)
                         )
                     }
                     Spacer(Modifier.height(14.dp))
                 }
 
                 Row(
-                    modifier = Modifier.align(Alignment.Center),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(x = theme.startSelectX.dp, y = theme.startSelectY.dp),
                     horizontalArrangement = Arrangement.spacedBy(30.dp)
                 ) {
                     SmallRoundButton(
-                        "SELECT",
+                        label = "SELECT",
+                        width = theme.smallButtonWidth.dp,
+                        color = theme.buttonColor,
                         onPress = { viewModel.inputHandler.buttonPressed(6) },
                         onRelease = { viewModel.inputHandler.buttonRelease(6) }
                     )
-
                     SmallRoundButton(
-                        "START",
+                        label = "START",
+                        width = theme.smallButtonWidth.dp,
+                        color = theme.buttonColor,
                         onPress = { viewModel.inputHandler.buttonPressed(7) },
                         onRelease = { viewModel.inputHandler.buttonRelease(7) }
                     )
@@ -274,21 +349,27 @@ fun GameBoySkin(viewModel: GameBoyViewModel) {
 }
 
 @Composable
-fun DPad(onPress: (Int) -> Unit, onRelease: (Int) -> Unit) {
-    Box(Modifier.size(150.dp), contentAlignment = Alignment.Center) {
-        Box(Modifier.size(150.dp, 50.dp).clip(RoundedCornerShape(8.dp)).background(ButtonGray))
-        Box(Modifier.size(50.dp, 150.dp).clip(RoundedCornerShape(8.dp)).background(ButtonGray))
-        Box(Modifier.size(45.dp).clip(CircleShape).background(Color(0xFFBCBCBC)))
+fun DPad(
+    size: Dp = 150.dp,
+    color: Color = ButtonGray,
+    onPress: (Int) -> Unit,
+    onRelease: (Int) -> Unit
+) {
+    val armThickness = size * 0.33f
+    val centerSize = size * 0.3f
+
+    Box(Modifier.size(size), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(size, armThickness).clip(RoundedCornerShape(8.dp)).background(color))
+        Box(Modifier.size(armThickness, size).clip(RoundedCornerShape(8.dp)).background(color))
+        Box(Modifier.size(centerSize).clip(CircleShape).background(color.copy(alpha = 0.8f)))
 
         Column(Modifier.fillMaxSize()) {
             DPadZone(Modifier.weight(1f).fillMaxWidth(), 2, onPress, onRelease)
-
             Row(Modifier.weight(1f).fillMaxWidth()) {
                 DPadZone(Modifier.weight(1f).fillMaxHeight(), 1, onPress, onRelease)
                 Spacer(Modifier.weight(1f).fillMaxHeight())
                 DPadZone(Modifier.weight(1f).fillMaxHeight(), 0, onPress, onRelease)
             }
-
             DPadZone(Modifier.weight(1f).fillMaxWidth(), 3, onPress, onRelease)
         }
     }
@@ -306,12 +387,8 @@ private fun DPadZone(
             awaitPointerEventScope {
                 while (true) {
                     val event = awaitPointerEvent()
-                    if (event.changes.any { it.pressed && !it.previousPressed }) {
-                        onPress(key)
-                    }
-                    if (event.changes.any { !it.pressed && it.previousPressed }) {
-                        onRelease(key)
-                    }
+                    if (event.changes.any { it.pressed && !it.previousPressed }) onPress(key)
+                    if (event.changes.any { !it.pressed && it.previousPressed }) onRelease(key)
                 }
             }
         }
@@ -321,15 +398,17 @@ private fun DPadZone(
 @Composable
 fun ActionButton(
     label: String,
+    size: Dp = 80.dp,
+    color: Color = ButtonGray,
     modifier: Modifier = Modifier,
     onPress: () -> Unit,
     onRelease: () -> Unit
 ) {
     Box(
         modifier = modifier
-            .size(80.dp)
+            .size(size)
             .clip(CircleShape)
-            .background(ButtonGray)
+            .background(color)
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
@@ -341,22 +420,29 @@ fun ActionButton(
             },
         contentAlignment = Alignment.Center
     ) {
-        Text(label, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+        Text(
+            text = label,
+            fontSize = (size.value * 0.3f).sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Gray
+        )
     }
 }
 
 @Composable
 fun SmallRoundButton(
     label: String,
+    width: Dp = 35.dp,
+    color: Color = Color(0xFF444444),
     onPress: () -> Unit,
     onRelease: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .size(35.dp, 12.dp) // GBC Select/Start are usually pills
+                .size(width, 12.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .background(Color(0xFF444444))
+                .background(color)
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) {

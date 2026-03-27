@@ -1937,7 +1937,7 @@ class GameBoy(
         return null
     }
 
-    fun setSarm(sarm: ByteArray?) {
+    fun setSram(sarm: ByteArray?) {
         if (sarm != null) {
             cartridge.setSram(sarm)
         }

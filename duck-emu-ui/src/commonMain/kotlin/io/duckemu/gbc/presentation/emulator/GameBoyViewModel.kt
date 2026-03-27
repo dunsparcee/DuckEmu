@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.Key
 import io.duckemu.EmulatorViewModel
+import io.duckemu.emulator.repository.config.ControllerThemeStore
 import io.duckemu.gbc.data.emulator.Controller
 import io.duckemu.gbc.data.emulator.DuckEmuConfig
 import io.duckemu.gbc.data.gpu.Colors
@@ -14,8 +15,15 @@ import io.github.compose_keyhandler.KeyHandler
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.exists
 import io.github.vinceglb.filekit.extension
+import io.github.vinceglb.filekit.nameWithoutExtension
 import io.github.vinceglb.filekit.path
 import io.github.vinceglb.filekit.readBytes
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.SYSTEM
@@ -26,6 +34,14 @@ object GameBoyViewModel : EmulatorViewModel() {
     val inputHandler = Controller()
     private var gameLoaded = ""
     var controller: KeyHandler = setupKeyHandler(this)
+    var controllerTheme by mutableStateOf<ControllerTheme>(ControllerTheme.GBC())
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+    init {
+        scope.launch {
+            controllerTheme = ControllerThemeStore.get("gbc")
+        }
+    }
 
     override suspend fun start(path: PlatformFile) {
         stop()
@@ -43,9 +59,8 @@ object GameBoyViewModel : EmulatorViewModel() {
 
             val file = PlatformFile(sRamFile)
             if (file.exists()) {
-                setSarm(file.readBytes())
+                setSram(file.readBytes())
             }
-
 
             startup()
         }
