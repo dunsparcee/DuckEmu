@@ -17,7 +17,7 @@ kotlin {
             freeCompilerArgs.add("-Xexpect-actual-classes")
         }
     }
-    
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -27,9 +27,9 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     jvm()
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
@@ -115,6 +115,12 @@ compose.desktop {
 
             macOS {
                 iconFile.set(file("icon.icns"))
+            }
+            windows {
+                iconFile.set(file("icon.ico"))
+            }
+            linux {
+                iconFile.set(file("icon.png"))
             }
         }
     }

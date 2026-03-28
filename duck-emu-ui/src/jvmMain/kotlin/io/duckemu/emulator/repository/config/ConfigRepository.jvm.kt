@@ -1,7 +1,13 @@
 package io.duckemu.emulator.repository.config
 
-import androidx.compose.ui.graphics.Path
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.filesDir
+import io.github.vinceglb.filekit.path
 
-actual fun provideStorePath(): String? {
-   return "."
+
+actual fun appPath(): String? {
+    return FileKit.filesDir.path
+}
+
+actual fun handleFilePermission(file: String) {
 }

@@ -4,7 +4,6 @@ import io.duckemu.emulator.repository.game.Game
 import io.duckemu.gbc.presentation.emulator.ControllerTheme
 import io.github.xxfast.kstore.KStore
 import io.github.xxfast.kstore.file.storeOf
-import kotlinx.coroutines.flow.Flow
 import kotlinx.io.files.Path
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
@@ -24,6 +23,7 @@ class ConfigRepository(
     }
 
     suspend fun importGame(console: String, game: Game) {
+        handleFilePermission(game.path)
         val config = store.get()
         if (config == null)
             store.set(
@@ -48,12 +48,15 @@ class ConfigRepository(
                 }
             }
     }
+
 }
 
-expect fun provideStorePath(): String?
+expect fun handleFilePermission(file: String)
+
+expect fun appPath(): String?
 
 val defaultStore: KStore<DuckEmuConfig> = storeOf(
-    file = Path(provideStorePath() + "/duck-emu.json")
+    file = Path(appPath() + "/duck-emu.json")
 )
 
 object ControllerThemeStore {
@@ -79,7 +82,7 @@ object ControllerThemeStore {
     fun storeFor(consoleId: String) =
         stores.getOrPut(consoleId) {
             storeOf(
-                file = Path(provideStorePath() + "/controller_theme_$consoleId.json"),
+                file = Path(appPath() + "/controller_theme_$consoleId.json"),
                 default = defaultFor(consoleId),
                 json = json
             )

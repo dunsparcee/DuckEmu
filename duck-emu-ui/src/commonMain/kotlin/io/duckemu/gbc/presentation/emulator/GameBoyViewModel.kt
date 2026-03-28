@@ -6,23 +6,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.Key
 import io.duckemu.EmulatorViewModel
 import io.duckemu.emulator.repository.config.ControllerThemeStore
+import io.duckemu.emulator.repository.config.handleFilePermission
 import io.duckemu.gbc.data.emulator.Controller
 import io.duckemu.gbc.data.emulator.DuckEmuConfig
 import io.duckemu.gbc.data.gpu.Colors
 import io.duckemu.gbc.domain.emulator.GameBoy
 import io.github.compose_keyhandler.KeyActionBuilder
 import io.github.compose_keyhandler.KeyHandler
+import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.exists
 import io.github.vinceglb.filekit.extension
-import io.github.vinceglb.filekit.nameWithoutExtension
+import io.github.vinceglb.filekit.filesDir
+import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.path
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -30,12 +32,13 @@ import okio.SYSTEM
 
 object GameBoyViewModel : EmulatorViewModel() {
     var isRunning by mutableStateOf(false)
-    private var gameBoy: GameBoy? = null
-    val inputHandler = Controller()
-    private var gameLoaded = ""
-    var controller: KeyHandler = setupKeyHandler(this)
+    var gameBoy: GameBoy? = null
+    var gameLoaded = PlatformFile("")
     var controllerTheme by mutableStateOf<ControllerTheme>(ControllerTheme.GBC())
+    val inputHandler = Controller()
+
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var controller: KeyHandler = setupKeyHandler(this)
 
     init {
         scope.launch {
@@ -54,8 +57,8 @@ object GameBoyViewModel : EmulatorViewModel() {
         }.apply {
             setSoundEnable(DuckEmuConfig.enableSound)
             setSpeed(DuckEmuConfig.speed)
-            gameLoaded = path.path
-            val sRamFile = "${gameLoaded}.sram.sav"
+            gameLoaded = path
+            val sRamFile = FileKit.filesDir.path.plus("/${gameLoaded.name}.sram.sav")
 
             val file = PlatformFile(sRamFile)
             if (file.exists()) {
@@ -63,6 +66,12 @@ object GameBoyViewModel : EmulatorViewModel() {
             }
 
             startup()
+            scope.launch {
+                while (running()) {
+                    delay(3000)
+                    save()
+                }
+            }
         }
         isRunning = true
     }
@@ -71,7 +80,7 @@ object GameBoyViewModel : EmulatorViewModel() {
         return controller
     }
 
-    override fun isEmuRunning() : Boolean {
+    override fun isEmuRunning(): Boolean {
         return isRunning
     }
 
@@ -79,17 +88,21 @@ object GameBoyViewModel : EmulatorViewModel() {
         gameBoy?.let { gb ->
             if (gb.running()) {
                 gb.shutdown()
-                gb.sarm()?.let {
-                    val path = "${gameLoaded}.sram.sav".toPath()
-                    FileSystem.SYSTEM.write(path) {
-                        write(it)
-                    }
-                }
+                save()
             }
         }
         gameBoy = null
         graphics = null
         isRunning = false
+    }
+
+    private fun save() {
+        gameBoy?.sarm()?.let {
+            val path = FileKit.filesDir.path.plus("/${gameLoaded.name}.sram.sav").toPath()
+            FileSystem.SYSTEM.write(path) {
+                write(it)
+            }
+        }
     }
 }
 

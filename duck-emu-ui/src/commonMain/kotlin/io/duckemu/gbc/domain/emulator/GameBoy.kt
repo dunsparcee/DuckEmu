@@ -834,10 +834,10 @@ class GameBoy(
                     }
 
                     0x0F -> {
-                        if ((a and 0x01) == 0x01) {
-                            f = F_CARRY
+                        f = if ((a and 0x01) == 0x01) {
+                            F_CARRY
                         } else {
-                            f = 0
+                            0
                         }
                         a = a shr 1
                         if ((f and F_CARRY) != 0) {

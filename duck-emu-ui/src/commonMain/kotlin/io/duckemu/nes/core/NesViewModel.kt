@@ -10,7 +10,9 @@ import io.duckemu.gbc.presentation.emulator.GameBoyViewModel
 import io.duckemu.nes.core.ui.Renderer
 import io.github.compose_keyhandler.KeyActionBuilder
 import io.github.compose_keyhandler.KeyHandler
+import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.openFileWithDefaultApplication
 import io.github.vinceglb.filekit.path
 import kotlinx.coroutines.*
 import kotlin.time.Clock
@@ -22,6 +24,7 @@ object NesViewModel : EmulatorViewModel() {
     override suspend fun start(path: PlatformFile) {
         stop()
         val r = Renderer()
+        FileKit.openFileWithDefaultApplication(path, )
         nes = Nes(r)
         nes!!.load(path.path)
         startup()
