@@ -44,8 +44,9 @@ class Mbc(private val nes: Nes) {
                 return 0 // TODO : Expanision ROM
             }
 
-            0x0C, 0x0D, 0x0E, 0x0F -> if (sramEnabled) return sram!![adr.toInt() and 0x1fff]
-            else return 0x00
+            0x0C, 0x0D, 0x0E, 0x0F -> return if (sramEnabled)
+                sram!![adr.toInt() and 0x1fff]
+            else 0x00
 
             0x10, 0x11, 0x12, 0x13 -> return rom!![romPage[0] + (adr.toInt() and 0x1fff)]
             0x14, 0x15, 0x16, 0x17 -> return rom!![romPage[1] + (adr.toInt() and 0x1fff)]
@@ -62,7 +63,8 @@ class Mbc(private val nes: Nes) {
             0x08, 0x09, 0x0A, 0x0B -> if (adr < 0x4020) nes.regs.write(adr, dat)
             else if (nes.mapper != null) nes.mapper!!.write(adr, dat)
 
-            0x0C, 0x0D, 0x0E, 0x0F -> if (sramEnabled) sram!![adr.toInt() and 0x1fff] = dat
+            0x0C, 0x0D, 0x0E, 0x0F -> if (sramEnabled)
+                sram!![adr.toInt() and 0x1fff] = dat
             else if (nes.mapper != null) nes.mapper!!.write(adr, dat)
 
             0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F -> if (nes.mapper != null) nes.mapper?.write(
@@ -84,7 +86,7 @@ class Mbc(private val nes: Nes) {
 
     private var rom: ByteArray?
     private var vrom: ByteArray? = null
-    private var sram: ByteArray? = ByteArray(16)
+    var sram: ByteArray? = ByteArray(16)
     private var vram: ByteArray? = ByteArray(16)
     private val ram = ByteArray(0x800)
 
@@ -92,7 +94,7 @@ class Mbc(private val nes: Nes) {
     private val chrPage = IntArray(8)
 
     private var isVram: Boolean
-    private var sramEnabled = false
+    private var sramEnabled = true
 
     init {
         rom = vrom

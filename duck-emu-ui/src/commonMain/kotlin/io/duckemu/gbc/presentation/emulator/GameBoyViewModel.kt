@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.Key
 import io.duckemu.EmulatorViewModel
 import io.duckemu.emulator.repository.config.ControllerThemeStore
-import io.duckemu.emulator.repository.config.handleFilePermission
 import io.duckemu.gbc.data.emulator.Controller
 import io.duckemu.gbc.data.emulator.DuckEmuConfig
 import io.duckemu.gbc.data.gpu.Colors
@@ -97,7 +96,7 @@ object GameBoyViewModel : EmulatorViewModel() {
     }
 
     private fun save() {
-        gameBoy?.sarm()?.let {
+        gameBoy?.sram()?.let {
             val path = FileKit.filesDir.path.plus("/${gameLoaded.name}.sram.sav").toPath()
             FileSystem.SYSTEM.write(path) {
                 write(it)

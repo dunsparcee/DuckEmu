@@ -1932,7 +1932,7 @@ class GameBoy(
         this.isTerminated = true
     }
 
-    fun sarm(): ByteArray? {
+    fun sram(): ByteArray? {
         if (cartridge.hasBattery) return cartridge.dumpSram()
         return null
     }

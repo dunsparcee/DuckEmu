@@ -1,9 +1,12 @@
 package io.duckemu.gbc.domain.nes.core
 
 import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.exists
 import io.github.vinceglb.filekit.readBytes
-import io.github.vinceglb.filekit.size
 import kotlinx.coroutines.runBlocking
+import okio.FileSystem
+import okio.Path.Companion.toPath
+import okio.SYSTEM
 
 class Rom() {
 
@@ -33,9 +36,9 @@ class Rom() {
         chrPageCnt = dat[5].toInt() and 0xff
 
         mirroring = if ((dat[6].toInt() and 1) != 0)
-            Rom.MirrorType.VERTICAL
+            MirrorType.VERTICAL
         else
-            Rom.MirrorType.HORIZONTAL
+            MirrorType.HORIZONTAL
         sramEnable = (dat[6].toInt() and 2) != 0
         trainerEnable = (dat[6].toInt() and 4) != 0
         this.isFourScreen = (dat[6].toInt() and 8) != 0
@@ -59,12 +62,20 @@ class Rom() {
         )
     }
 
-    fun saveSram(fname: String?) {
-        // TODO
+    fun saveSram(fname: String, sram: ByteArray?) {
+        sram?.let {
+            val path = fname.toPath()
+            FileSystem.SYSTEM.write(path) {
+                write(it)
+            }
+        }
     }
 
-    fun loadSram(fname: String?) {
-        // TODO
+    suspend fun loadSram(fname: String) {
+        val file = PlatformFile(fname)
+        if (file.exists()) {
+            sram = file.readBytes()
+        }
     }
 
     fun romSize(): Int {
@@ -91,14 +102,14 @@ class Rom() {
         HORIZONTAL, VERTICAL,
     }
 
-    fun mirror(): Rom.MirrorType? {
+    fun mirror(): MirrorType? {
         return mirroring
     }
 
     private var prgPageCnt = 0
     private var chrPageCnt = 0
     private var mirroring: Rom.MirrorType? = null
-    private var sramEnable = false
+    private var sramEnable = true
     private var trainerEnable = false
     var isFourScreen: Boolean = false
         private set

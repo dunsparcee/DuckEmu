@@ -10,8 +10,9 @@ class Nes(
     val renderer: Renderer
 ) {
 
-    fun load(fname: String) {
+    suspend fun load(fname: String, saveFile: String) {
         rom.load(fname)
+        loadSram(saveFile)
         mapper = makeMapper(rom.mapperNo(), this)
         reset()
     }
@@ -20,11 +21,11 @@ class Nes(
         return mapper != null
     }
 
-    fun saveSram(fname: String?) {
-        rom.saveSram(fname)
+    fun saveSram(fname: String) {
+        rom.saveSram(fname, mbc.sram)
     }
 
-    fun loadSram(fname: String?) {
+    suspend fun loadSram(fname: String) {
         rom.loadSram(fname)
     }
 

@@ -5,14 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.Key
 import io.duckemu.EmulatorViewModel
-import io.duckemu.gbc.data.emulator.Controller
-import io.duckemu.gbc.presentation.emulator.GameBoyViewModel
 import io.duckemu.nes.core.ui.Renderer
 import io.github.compose_keyhandler.KeyActionBuilder
 import io.github.compose_keyhandler.KeyHandler
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.dialogs.openFileWithDefaultApplication
+import io.github.vinceglb.filekit.filesDir
+import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.path
 import kotlinx.coroutines.*
 import kotlin.time.Clock
@@ -21,15 +20,16 @@ object NesViewModel : EmulatorViewModel() {
     private var nes: Nes? = null
     var isRunning by mutableStateOf(false)
 
+    var gameLoaded = ""
+
     override suspend fun start(path: PlatformFile) {
         stop()
+        gameLoaded = path.name
+        val saveFile = FileKit.filesDir.path.plus("/${gameLoaded}.sram.sav")
         val r = Renderer()
-        FileKit.openFileWithDefaultApplication(path, )
         nes = Nes(r)
-        nes!!.load(path.path)
+        nes!!.load(path.path, saveFile)
         startup()
-        nes
-
         isRunning = true
     }
 
@@ -82,6 +82,8 @@ object NesViewModel : EmulatorViewModel() {
     }
 
     override suspend fun stop() {
+        val saveFile = FileKit.filesDir.path.plus("/${gameLoaded}.sram.sav")
+        nes?.saveSram(saveFile)
         nes = null
         graphics = null
         isRunning = false
