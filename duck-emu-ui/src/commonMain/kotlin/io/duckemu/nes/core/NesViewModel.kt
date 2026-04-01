@@ -17,9 +17,8 @@ import kotlinx.coroutines.*
 import kotlin.time.Clock
 
 object NesViewModel : EmulatorViewModel() {
-    private var nes: Nes? = null
+    var nes: Nes? = null
     var isRunning by mutableStateOf(false)
-
     var gameLoaded = ""
 
     override suspend fun start(path: PlatformFile) {
@@ -92,9 +91,6 @@ object NesViewModel : EmulatorViewModel() {
     fun setupKeyHandler(): KeyHandler {
         return KeyHandler {
             onPress {
-                key(Key.Escape) {
-                    openSettings = !openSettings
-                }
                 keys(true)
             }
             onRelease {
@@ -122,6 +118,22 @@ object NesViewModel : EmulatorViewModel() {
 
     fun upDown(isPressed: Boolean, index: Key) {
         nes?.renderer?.onKey(index, isPressed)
+    }
+
+    override fun listSaves(): List<String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun loadState(path: String) {
+        TODO("Not yet implemented")
+    }
+
+    override fun loadState() {
+        TODO("Not yet implemented")
+    }
+
+    override fun saveState() {
+        TODO("Not yet implemented")
     }
 }
 

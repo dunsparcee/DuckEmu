@@ -19,7 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.duckemu.emulator.presentation.EmulatorScreen
+import io.duckemu.gbc.presentation.emulator.EmuSettings
 import io.duckemu.gbc.presentation.emulator.MenuGridContent
+import io.duckemu.gbc.presentation.emulator.color
 import io.duckemu.nes.core.NesViewModel
 
 val NesRed = Color(0xFFE60012)
@@ -31,25 +33,7 @@ val NesButtonGray = Color(0xFF555555)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NesSkin(viewModel: NesViewModel) {
-    val sheetState = rememberModalBottomSheetState()
-    var showSheet by remember { mutableStateOf(false) }
-
-    if (showSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
-            sheetState = sheetState,
-            containerColor = Color(0xEE1A1A2E),
-            contentColor = Color.White
-        ) {
-            MenuGridContent(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.5f)
-                    .padding(horizontal = 16.dp),
-                onClose = { showSheet = false }
-            )
-        }
-    }
+    EmuSettings(viewModel, Color(0xEE1A1A2E))
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -132,7 +116,7 @@ fun NesSkin(viewModel: NesViewModel) {
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 8.dp, start = 16.dp, end = 16.dp)
             ) {
-                IconButton(onClick = { showSheet = true }) {
+                IconButton(onClick = { viewModel.openSettingsSheet() }) {
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "Settings",

@@ -1,53 +1,46 @@
 package io.duckemu.gbc.presentation.emulator
 
 import kotlinx.serialization.SerialName
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Cast
-import androidx.compose.material.icons.filled.Checkroom
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.Gamepad
-import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.TransitEnterexit
-import androidx.compose.material.icons.filled.Vibration
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -59,11 +52,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.duckemu.Emulator
 import io.duckemu.EmulatorViewModel
-import io.duckemu.emulator.presentation.DuckEmuBlack
 import io.duckemu.emulator.presentation.EmulatorScreen
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 @Serializable
 sealed class ControllerTheme {
@@ -90,7 +82,7 @@ sealed class ControllerTheme {
         val startSelectY: Float = 0f
     ) : ControllerTheme() {
         val backgroundColor get() = Color(backgroundColorArgb)
-        val buttonColor     get() = Color(buttonColorArgb)
+        val buttonColor get() = Color(buttonColorArgb)
     }
 
     @Serializable
@@ -163,6 +155,7 @@ fun MenuItem(
 @Composable
 fun MenuGridContent(
     onClose: () -> Unit,
+    onAction: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -195,18 +188,164 @@ fun MenuGridContent(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item { MenuItem("Save", Icons.Default.SaveAlt, {}) }
-            item { MenuItem("Load", Icons.Default.History, {}) }
+            item { MenuItem("Save", Icons.Default.SaveAlt, { onAction("SAVE") }) }
+            item { MenuItem("Fast Load", Icons.Default.History, { onAction("LOAD") }) }
             item { MenuItem("Audio", Icons.AutoMirrored.Filled.VolumeUp, {}) }
             item { MenuItem("Forward", Icons.Default.FastForward, {}) }
 
-            item { MenuItem("Saves", Icons.AutoMirrored.Filled.List, {}) }
+            item { MenuItem("Saves", Icons.AutoMirrored.Filled.List, { onAction("LIST_LOAD") }) }
             item { MenuItem("Capture", Icons.Default.CameraAlt, {}) }
             item { MenuItem("Gamepad", Icons.Default.Gamepad, {}) }
             item { MenuItem("Exit", Icons.AutoMirrored.Filled.ExitToApp, {}) }
         }
     }
 }
+
+@Composable
+fun SaveListContent(
+    saves: List<String>,
+    onSelect: (String) -> Unit,
+    onBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.5f)
+    ) {
+        // Header
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            }
+            Text(
+                "Save states",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(Modifier.weight(1f))
+            if (saves.isNotEmpty()) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Text(
+                        "${saves.size} saves",
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        }
+
+        HorizontalDivider()
+
+        if (saves.isEmpty()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Outlined.FolderOpen,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "No saves found",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                itemsIndexed(saves) { index, path ->
+                    val timestamp = path
+                        .substringAfterLast("/")
+                        .substringAfterLast(".")
+                        .substringBefore(".ss")
+                        .toLongOrNull()
+
+                    val formatted = timestamp?.let {
+                        Instant.fromEpochMilliseconds(it).toString()
+                    } ?: path.substringAfterLast("/")
+
+                    val isLatest = index == 0
+
+                    OutlinedCard(
+                        onClick = { onSelect(path) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.outlinedCardColors(
+                            MaterialTheme.colorScheme.surface
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(12.dp)
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        Icons.Outlined.Save,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            Spacer(Modifier.width(12.dp))
+
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    "Slot ${index + 1}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    formatted,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            if (isLatest) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primaryContainer
+                                ) {
+                                    Text(
+                                        "Latest",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                    )
+                                }
+                                Spacer(Modifier.width(4.dp))
+                            }
+
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowForwardIos,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 var color = Color(0xEE001932);
 
 @Composable
@@ -214,25 +353,7 @@ var color = Color(0xEE001932);
 fun GameBoySkin(viewModel: GameBoyViewModel) {
     val theme = viewModel.controllerTheme as? ControllerTheme.GBC ?: ControllerTheme.GBC()
 
-    val sheetState = rememberModalBottomSheetState()
-    var showSheet by remember { mutableStateOf(false) }
-
-    if (showSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
-            sheetState = sheetState,
-            containerColor = color,
-            contentColor = Color.White
-        ) {
-            MenuGridContent(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.5f)
-                    .padding(horizontal = 16.dp),
-                onClose = { showSheet = false }
-            )
-        }
-    }
+    EmuSettings(viewModel, containerColor = color)
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -308,7 +429,7 @@ fun GameBoySkin(viewModel: GameBoyViewModel) {
                     .padding(bottom = 20.dp, start = 20.dp, end = 20.dp)
             ) {
                 Column(verticalArrangement = Arrangement.Center) {
-                    IconButton(onClick = { showSheet = true }) {
+                    IconButton(onClick = { viewModel.openSettingsSheet() }) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Settings",
@@ -343,6 +464,52 @@ fun GameBoySkin(viewModel: GameBoyViewModel) {
                         onRelease = { viewModel.inputHandler.buttonRelease(7) }
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun EmuSettings(
+    viewModel: EmulatorViewModel,
+    containerColor: Color = Color.Unspecified
+) {
+    val sheetState = rememberModalBottomSheetState()
+    var showAction by mutableStateOf("")
+
+    if (viewModel.showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.closeSettingsSheet() },
+            sheetState = sheetState,
+            containerColor = containerColor,
+            contentColor = Color.White
+        ) {
+
+            when (showAction) {
+                "LIST_LOAD" -> SaveListContent(
+                    saves = viewModel.listSaves(),
+                    onSelect = { path ->
+                        viewModel.loadState(path)
+                        viewModel.closeSettingsSheet()
+                        showAction = "DEFAULT"
+                    },
+                    onBack = { showAction = "DEFAULT" }
+                )
+                else -> MenuGridContent(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.5f)
+                        .padding(horizontal = 16.dp),
+                    onClose = { viewModel.closeSettingsSheet() },
+                    onAction = {
+                        when (it) {
+                            "SAVE" -> viewModel.saveState()
+                            "LOAD" -> viewModel.loadState()
+                            "LIST_LOAD" -> showAction = it
+                        }
+                    }
+                )
             }
         }
     }

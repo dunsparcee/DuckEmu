@@ -28,6 +28,9 @@ import kotlinx.coroutines.launch
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.SYSTEM
+import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 object GameBoyViewModel : EmulatorViewModel() {
     var isRunning by mutableStateOf(false)
@@ -42,6 +45,52 @@ object GameBoyViewModel : EmulatorViewModel() {
     init {
         scope.launch {
             controllerTheme = ControllerThemeStore.get("gbc")
+        }
+    }
+
+    override fun saveState() {
+        gameBoy?.let {
+            val flatten = it.flatten()
+            val path = FileKit.filesDir.path.plus("/${gameLoaded.name}.${Clock.System.now().toEpochMilliseconds()}.ss")
+                .toPath()
+            FileSystem.SYSTEM.write(path) {
+                write(flatten)
+            }
+        }
+    }
+
+    override fun listSaves(): List<String> {
+        val savesDir = FileKit.filesDir.path.toPath()
+        val prefix = "${gameLoaded.name}."
+        return FileSystem.SYSTEM
+            .list(savesDir)
+            .filter { it.name.startsWith(prefix) && it.name.endsWith(".ss") }
+            .sortedByDescending { it.name.removePrefix(prefix).removeSuffix(".ss").toLongOrNull() ?: 0L }
+            .map { it.toString() }
+    }
+
+    override fun loadState() {
+        gameBoy?.let {
+
+            val savesDir = FileKit.filesDir.path.toPath()
+            val prefix = "${gameLoaded.name}."
+
+            val latestFile = FileSystem.SYSTEM
+                .list(savesDir)
+                .filter { it.name.startsWith(prefix) && it.name.endsWith(".ss") }
+                .maxByOrNull { it.name.removePrefix(prefix).removeSuffix(".ss").toLongOrNull() ?: 0L }
+
+            latestFile?.let { path ->
+                val bytes = FileSystem.SYSTEM.read(path) { readByteArray() }
+                it.unflatten(bytes)
+            }
+        }
+    }
+
+    override fun loadState(path: String) {
+        gameBoy?.let {
+            val bytes = FileSystem.SYSTEM.read(path.toPath()) { readByteArray() }
+            it.unflatten(bytes)
         }
     }
 

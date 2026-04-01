@@ -16,7 +16,7 @@ fun main() = application {
     } , title = "DuckEmu") {
         MaterialTheme {
             FileKit.init("duckemu")
-            MainViewModel.MainScreen()
+            MainViewModel.MainScreen(true)
         }
     }
 }

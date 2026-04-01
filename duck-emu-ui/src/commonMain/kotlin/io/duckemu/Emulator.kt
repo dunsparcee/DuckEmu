@@ -19,6 +19,20 @@ interface Emulator {
 }
 
 abstract class EmulatorViewModel : Emulator {
+    fun openSettingsSheet() {
+        showSheet = true
+    }
+
+    fun closeSettingsSheet() {
+        showSheet = false
+    }
+
+    abstract fun listSaves(): List<String>
+    abstract fun loadState(path: String)
+    abstract fun loadState()
+    abstract fun saveState()
+
+    var showSheet by mutableStateOf(false)
     var graphics by mutableStateOf<ImageBitmap?>(null)
     var openSettings by mutableStateOf(false)
 }
