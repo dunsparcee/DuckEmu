@@ -4,6 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.Key
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import io.duckemu.EmulatorViewModel
 import io.duckemu.emulator.repository.config.ControllerThemeStore
 import io.duckemu.gbc.data.emulator.Controller
@@ -29,11 +32,8 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.SYSTEM
 import kotlin.time.Clock
-import kotlin.time.Instant
-import kotlin.uuid.Uuid
 
 object GameBoyViewModel : EmulatorViewModel() {
-    var isRunning by mutableStateOf(false)
     var gameBoy: GameBoy? = null
     var gameLoaded = PlatformFile("")
     var controllerTheme by mutableStateOf<ControllerTheme>(ControllerTheme.GBC())
@@ -67,6 +67,11 @@ object GameBoyViewModel : EmulatorViewModel() {
             .filter { it.name.startsWith(prefix) && it.name.endsWith(".ss") }
             .sortedByDescending { it.name.removePrefix(prefix).removeSuffix(".ss").toLongOrNull() ?: 0L }
             .map { it.toString() }
+    }
+
+    override fun toggleAudio() {
+        this.soundEnable = !soundEnable
+        gameBoy?.speaker?.setSoundEnabled(this.soundEnable)
     }
 
     override fun loadState() {
@@ -132,16 +137,18 @@ object GameBoyViewModel : EmulatorViewModel() {
         return isRunning
     }
 
-    override suspend fun stop() {
-        gameBoy?.let { gb ->
-            if (gb.running()) {
-                gb.shutdown()
-                save()
+    override fun stop() {
+        viewModelScope.launch {
+            gameBoy?.let { gb ->
+                if (gb.running()) {
+                    gb.shutdown()
+                    save()
+                }
             }
+            gameBoy = null
+            graphics = null
+            isRunning = false
         }
-        gameBoy = null
-        graphics = null
-        isRunning = false
     }
 
     private fun save() {

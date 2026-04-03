@@ -78,7 +78,7 @@ class GameBoy(
 
     var registers: ByteArray = ByteArray(0x100)
 
-    private val speaker: AudioInterface = AudioInterface(registers)
+    val speaker: AudioInterface = AudioInterface(registers)
 
     private var divReset = 0
 
@@ -2226,8 +2226,6 @@ class GameBoy(
         if (running()) {
             terminate()
             job?.cancelAndJoin()
-        } else {
-            throw RuntimeException("")
         }
     }
 

@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -42,14 +43,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.duckemu.EmulatorViewModel
+import io.duckemu.emulator.data.searchMatch
 import io.duckemu.emulator.repository.config.ConfigRepository
 import io.duckemu.emulator.repository.game.Game
 import io.duckemu.emulator.repository.game.GameRepository
 import io.duckemu.gbc.presentation.emulator.GameBoySkin
 import io.duckemu.gbc.presentation.emulator.GameBoyViewModel
 import io.duckemu.gbc.presentation.emulator.GbcPurple
-import io.duckemu.gbc.presentation.emulator.nes.NesSkin
-import io.duckemu.nes.core.NesViewModel
+import io.duckemu.nes.presentation.NesSkin
+import io.duckemu.nes.presentation.NesViewModel
 import io.github.compose_keyhandler.KeyHandlerHost
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
@@ -212,14 +214,23 @@ fun DuckEmuHome(
             onValueChange = { searchQuery = it },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 5.dp)
-                .height(50.dp),
+                .padding(horizontal = 16.dp, vertical = 5.dp),
             placeholder = { Text("Search", color = Color.Gray) },
             leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
+                Icon(Icons.Default.Search, contentDescription = "Search Games", tint = Color.Gray)
             },
             shape = RoundedCornerShape(12.dp),
-            singleLine = true
+            singleLine = true,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color(0xFF262626),
+                unfocusedContainerColor = Color(0xFF262626),
+                focusedTextColor = Color(0xFFE0E0E0),
+                unfocusedTextColor = Color(0xFFE0E0E0),
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                cursorColor = Color.White,
+            )
         )
 
         Spacer(Modifier.height(8.dp))
@@ -253,7 +264,7 @@ fun DuckEmuHome(
             ) {
                 games.forEach { console ->
                     console.value.forEach { it ->
-                        if (searchQuery.isBlank()) {
+                        if (searchQuery.isBlank() || searchMatch(searchQuery, it.name)) {
                             item {
                                 GameCard(it, { onGameClick(it) })
                             }

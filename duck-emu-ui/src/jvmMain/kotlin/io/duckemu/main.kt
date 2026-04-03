@@ -5,6 +5,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import io.duckemu.emulator.presentation.MainViewModel
 import io.github.vinceglb.filekit.FileKit
+import io.kreenshot.KreenshotCapture
 import kotlinx.coroutines.runBlocking
 
 fun main() = application {
@@ -15,6 +16,7 @@ fun main() = application {
         exitApplication()
     } , title = "DuckEmu") {
         MaterialTheme {
+            KreenshotCapture.init(window)
             FileKit.init("duckemu")
             MainViewModel.MainScreen(true)
         }
