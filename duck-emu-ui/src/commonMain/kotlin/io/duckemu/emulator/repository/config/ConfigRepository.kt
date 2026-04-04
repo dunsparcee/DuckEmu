@@ -61,11 +61,11 @@ val defaultStore: KStore<DuckEmuConfig> = storeOf(
 
 object ControllerThemeStore {
     private val json = Json {
+        encodeDefaults = true
         serializersModule = SerializersModule {
             polymorphic(ControllerTheme::class) {
                 subclass(ControllerTheme.GBC::class)
-                subclass(ControllerTheme.GBA::class)
-                subclass(ControllerTheme.N64::class)
+                subclass(ControllerTheme.NES::class)
             }
         }
     }
@@ -74,22 +74,30 @@ object ControllerThemeStore {
 
     private fun defaultFor(consoleId: String): ControllerTheme = when (consoleId) {
         "gbc" -> ControllerTheme.GBC()
-        "gba" -> ControllerTheme.GBA()
-        "n64" -> ControllerTheme.N64()
+        "nes" -> ControllerTheme.NES()
         else -> error("Unknown console: $consoleId")
     }
 
-    fun storeFor(consoleId: String) =
+    fun storeFor(consoleId: String): KStore<ControllerTheme> =
         stores.getOrPut(consoleId) {
-            storeOf(
+            return storeOf(
                 file = Path(appPath() + "/controller_theme_$consoleId.json"),
-                default = defaultFor(consoleId),
                 json = json
             )
         }
 
-    suspend fun get(consoleId: String) =
-        storeFor(consoleId).get() ?: defaultFor(consoleId)
+    suspend fun get(consoleId: String): ControllerTheme {
+        val store = storeFor(consoleId)
+        val existing = store.get()
+
+        return if (existing != null) {
+            existing
+        } else {
+            val default = defaultFor(consoleId)
+            store.set(default)
+            default
+        }
+    }
 
     suspend fun update(consoleId: String, theme: ControllerTheme) =
         storeFor(consoleId).set(theme)

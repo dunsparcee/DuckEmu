@@ -6,20 +6,11 @@ import io.duckemu.nes.domain.Nes
 import io.duckemu.nes.domain.ui.Renderer
 import io.github.compose_keyhandler.KeyActionBuilder
 import io.github.compose_keyhandler.KeyHandler
-import io.github.vinceglb.filekit.FileKit
-import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.filesDir
-import io.github.vinceglb.filekit.name
-import io.github.vinceglb.filekit.path
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import io.github.vinceglb.filekit.*
+import kotlinx.coroutines.*
 import kotlin.time.Clock
 
-object NesViewModel : EmulatorViewModel() {
+object NesViewModel : EmulatorViewModel(consoleId = "nes") {
     var nes: Nes? = null
     var gameLoaded = ""
 

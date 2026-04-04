@@ -15,10 +15,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.duckemu.emulator.presentation.EmuSettings
 import io.duckemu.emulator.presentation.EmulatorScreen
+import io.duckemu.gbc.presentation.emulator.ControllerTheme
 
 val NesRed = Color(0xFFE60012)
 val NesGray = Color(0xFF8B8B8B)
@@ -29,6 +31,7 @@ val NesButtonGray = Color(0xFF555555)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NesSkin(viewModel: NesViewModel) {
+    val theme = viewModel.controllerTheme as? ControllerTheme.NES ?: ControllerTheme.NES()
     EmuSettings(viewModel, Color(0xEE1A1A2E))
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -45,7 +48,7 @@ fun NesSkin(viewModel: NesViewModel) {
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1.2f)
-                .background(NesGray)
+                .background(theme.backgroundColor.copy(alpha = theme.backgroundAlpha))
                 .padding(bottom = 32.dp)
         ) {
             Box(
@@ -72,15 +75,15 @@ fun NesSkin(viewModel: NesViewModel) {
             Box(
                 Modifier
                     .align(Alignment.CenterStart)
-                    .padding(start = 24.dp)
-                    .offset(y = 10.dp)
+                    .padding(start = theme.dpadXOffset.dp)
+                    .offset(y = theme.dpadYOffset.dp)
             ) {
                 NesDPad(
+                    size = theme.dpadSize.dp,
                     onPress = { viewModel.upDown(true, it) },
                     onRelease = { viewModel.upDown(false, it) }
                 )
             }
-
             Box(
                 Modifier
                     .align(Alignment.CenterEnd)
@@ -90,18 +93,20 @@ fun NesSkin(viewModel: NesViewModel) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     NesActionButton(
                         label = "B",
-                        color = NesRed,
-                        modifier = Modifier.offset(y = 30.dp),
+                        size = theme.actionButtonSize.dp,
+                        color = theme.buttonColor,
+                        modifier = Modifier.offset(y = theme.bYOffset.dp),
                         onPress = { viewModel.upDown(true, Key.Z) },
                         onRelease = { viewModel.upDown(false, Key.Z) }
                     )
                     Spacer(Modifier.width(20.dp))
                     NesActionButton(
                         label = "A",
-                        color = NesRed,
-                        modifier = Modifier.offset(y = (-10).dp),
+                        size = theme.actionButtonSize.dp,
+                        color = theme.buttonColor,
+                        modifier = Modifier.offset(y = theme.aYOffset.dp),
                         onPress = { viewModel.upDown(true, Key.X) },
-                        onRelease = { viewModel.upDown(false, Key.X) }
+                        onRelease = { viewModel.upDown(false, Key.X) },
                     )
                 }
             }
@@ -146,11 +151,29 @@ fun NesSkin(viewModel: NesViewModel) {
 }
 
 @Composable
-fun NesDPad(onPress: (Key) -> Unit, onRelease: (Key) -> Unit) {
-    Box(Modifier.size(140.dp), contentAlignment = Alignment.Center) {
-        Box(Modifier.size(140.dp, 46.dp).clip(RoundedCornerShape(6.dp)).background(NesDark))
-        Box(Modifier.size(46.dp, 140.dp).clip(RoundedCornerShape(6.dp)).background(NesDark))
-        Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF1A1A1A)))
+fun NesDPad(onPress: (Key) -> Unit, onRelease: (Key) -> Unit, size: Dp) {
+    val armThickness = size * 0.33f
+    val centerCircleSize = size * 0.28f
+
+    Box(Modifier.size(size), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .size(size, armThickness)
+                .clip(RoundedCornerShape((size.value * 0.04).dp)) // Scale corner radius too
+                .background(NesDark)
+        )
+        Box(
+            Modifier
+                .size(armThickness, size)
+                .clip(RoundedCornerShape((size.value * 0.04).dp))
+                .background(NesDark)
+        )
+        Box(
+            Modifier
+                .size(centerCircleSize)
+                .clip(CircleShape)
+                .background(Color(0xFF1A1A1A))
+        )
 
         Column(Modifier.fillMaxSize()) {
             NesDPadZone(Modifier.weight(1f).fillMaxWidth(), Key.DirectionUp, onPress, onRelease) // Up
@@ -190,11 +213,12 @@ fun NesActionButton(
     color: Color,
     modifier: Modifier = Modifier,
     onPress: () -> Unit,
-    onRelease: () -> Unit
+    onRelease: () -> Unit,
+    size: Dp
 ) {
     Box(
         modifier = modifier
-            .size(70.dp)
+            .size(size)
             .clip(CircleShape)
             .background(color)
             .pointerInput(Unit) {
@@ -208,7 +232,7 @@ fun NesActionButton(
             },
         contentAlignment = Alignment.Center
     ) {
-        Text(label, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        Text(label, fontSize = (size.value * 0.31).sp, fontWeight = FontWeight.Bold, color = Color.White)
     }
 }
 

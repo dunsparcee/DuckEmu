@@ -1,5 +1,6 @@
 package io.duckemu.emulator.presentation
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,6 +68,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.duckemu.EmulatorViewModel
 import io.duckemu.emulator.data.SettingsAction
+import io.duckemu.gbc.presentation.emulator.ControllerTheme
 import kotlin.time.Instant
 
 @Composable
@@ -125,6 +128,13 @@ fun EmuSettings(
                     viewModel.closeSettingsSheet()
                     viewModel.captureAndSave()
                 }
+                SettingsAction.CONTROLLER -> {
+                    SelectTheme(listOf(viewModel.controllerTheme!!), onSelect = {
+
+                    }, onBack = {
+
+                    })
+                }
                 else -> MenuGridContent(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -135,10 +145,9 @@ fun EmuSettings(
                         when (it) {
                             SettingsAction.SAVE -> viewModel.saveState()
                             SettingsAction.LOAD -> viewModel.loadState()
-                            SettingsAction.LIST_LOAD, SettingsAction.SCREENSHOT -> showAction = it
+                            SettingsAction.LIST_LOAD, SettingsAction.SCREENSHOT, SettingsAction.CONTROLLER -> showAction = it
                             SettingsAction.AUDIO -> viewModel.toggleAudio()
                             SettingsAction.FORWARD -> TODO()
-                            SettingsAction.CONTROLLER -> TODO()
                             SettingsAction.EXIT_GAME -> viewModel.stop()
                             else -> {}
                         }
@@ -248,7 +257,6 @@ fun SaveListContent(
             .fillMaxWidth()
             .fillMaxHeight(0.5f)
     ) {
-        // Header
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -375,6 +383,96 @@ fun SaveListContent(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun SelectTheme(
+    themes: List<ControllerTheme>,
+    onSelect: (ControllerTheme) -> Unit,
+    onBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.6f) // Slightly taller to accommodate preview icons
+    ) {
+        // Header
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            }
+            Text(
+                "Controller Skins",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+
+        HorizontalDivider()
+
+        LazyColumn(
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(themes) { theme ->
+                val (name, description) = when (theme) {
+                    is ControllerTheme.GBC -> "Game Boy Color" to "Classic handheld layout"
+                    is ControllerTheme.NES -> "Nintendo Entertainment System" to "Retro horizontal layout"
+                }
+
+                OutlinedCard(
+                    onClick = { onSelect(theme) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color(theme.backgroundColorArgb),
+                            modifier = Modifier.size(44.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = Color(theme.buttonColorArgb),
+                                    modifier = Modifier.size(16.dp)
+                                ) {}
+                            }
+                        }
+
+                        Spacer(Modifier.width(16.dp))
+
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowForwardIos,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.outline
+                        )
                     }
                 }
             }
