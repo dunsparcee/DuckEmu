@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.duckemu.EmulatorViewModel
+import io.duckemu.controller.GamepadController
 import io.duckemu.emulator.repository.config.ControllerThemeStore
 import io.duckemu.gbc.data.emulator.Controller
 import io.duckemu.gbc.data.emulator.DuckEmuConfig
@@ -162,6 +163,30 @@ object GameBoyViewModel : EmulatorViewModel() {
 }
 
 fun setupKeyHandler(gameBoyViewModel: GameBoyViewModel): KeyHandler {
+    GamepadController.startListening(onButton = {
+        when(it) {
+            "BUTTON_B_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 4)
+            "BUTTON_A_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 5)
+            "BUTTON_SELECT_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 6)
+            "BUTTON_START_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 7)
+            "DPAD_RIGHT_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 0)
+            "DPAD_LEFT_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 1)
+            "DPAD_UP_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 2)
+            "DPAD_DOWN_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 3)
+            "BUTTON_B_UP" -> upDown(gameBoyViewModel.inputHandler, false, 4)
+            "BUTTON_A_UP" -> upDown(gameBoyViewModel.inputHandler, false, 5)
+            "BUTTON_SELECT_UP" -> upDown(gameBoyViewModel.inputHandler, false, 6)
+            "BUTTON_START_UP" -> upDown(gameBoyViewModel.inputHandler, false, 7)
+            "DPAD_RIGHT_UP" -> upDown(gameBoyViewModel.inputHandler, false, 0)
+            "DPAD_LEFT_UP" -> upDown(gameBoyViewModel.inputHandler, false, 1)
+            "DPAD_UP_UP" -> upDown(gameBoyViewModel.inputHandler, false, 2)
+            "DPAD_DOWN_UP" -> upDown(gameBoyViewModel.inputHandler, false, 3)
+        }
+    }, onAxis = { it, xit ->
+        println(it)
+        println(xit)
+    })
+
     return KeyHandler {
         onPress {
             keys(gameBoyViewModel.inputHandler, true)
@@ -202,4 +227,9 @@ private fun KeyActionBuilder.keys(inputHandler: Controller, isPressed: Boolean) 
 fun upDown(inputHandler: Controller, isPressed: Boolean, index: Int) {
     if (isPressed) inputHandler.buttonPressed(index)
     else inputHandler.buttonRelease(index)
+}
+
+fun upDown(inputHandler: Controller, index: Int) {
+    inputHandler.buttonPressed(index)
+    inputHandler.buttonRelease(index)
 }

@@ -7,17 +7,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.compose_keyhandler.KeyHandler
-import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.filesDir
-import io.github.vinceglb.filekit.path
 import io.kreenshot.KreenshotCapture
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okio.FileSystem
-import okio.Path.Companion.toPath
-import okio.SYSTEM
 import kotlin.time.Clock
 
 abstract class EmulatorViewModel : ViewModel() {

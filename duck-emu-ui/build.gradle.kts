@@ -1,5 +1,7 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -65,12 +67,38 @@ kotlin {
             implementation(libs.kotlin.test)
         }
         jvmMain.dependencies {
+            implementation("net.java.jinput:jinput:2.0.10")
+            runtimeOnly("net.java.jinput:jinput:2.0.10:natives-all")
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.ktor.client.java)
         }
     }
 }
+
+val unpackJinputNatives by tasks.registering(Copy::class) {
+    val nativesJar = configurations.getByName("jvmRuntimeClasspath")
+        .resolvedConfiguration
+        .resolvedArtifacts
+        .first { it.name == "jinput" && it.classifier == "natives-all" }
+        .file
+    from(zipTree(nativesJar)) {
+        include("*.dll", "*.so", "*.dylib", "*.jnilib")
+    }
+    into(layout.buildDirectory.dir("jinput-natives"))
+}
+
+afterEvaluate {
+    listOf("run", "jvmRun").forEach { taskName ->
+        tasks.findByName(taskName)?.let { task ->
+            task.dependsOn(unpackJinputNatives)
+            (task as JavaExec).jvmArgs(
+                "-Djava.library.path=${layout.buildDirectory.dir("jinput-natives").get().asFile.absolutePath}"
+            )
+        }
+    }
+}
+
 
 android {
     namespace = "io.duckemu"
