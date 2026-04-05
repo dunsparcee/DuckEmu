@@ -13,6 +13,8 @@ import kotlin.time.Clock
 object NesViewModel : EmulatorViewModel(consoleId = "nes") {
     var nes: Nes? = null
     var gameLoaded = ""
+    private var job: Job? = null
+    private val scope = CoroutineScope(Dispatchers.Default)
 
     override suspend fun start(path: PlatformFile) {
         stop()
@@ -24,9 +26,6 @@ object NesViewModel : EmulatorViewModel(consoleId = "nes") {
         startup()
         isRunning = true
     }
-
-    private var job: Job? = null
-    private val scope = CoroutineScope(Dispatchers.Default)
 
     fun run() {
         val fps = 60
@@ -100,15 +99,13 @@ object NesViewModel : EmulatorViewModel(consoleId = "nes") {
         }
     }
 
-
     val keysToMap = arrayOf(
-        Key.Companion.Z, Key.Companion.X, Key.Companion.ShiftLeft,
-        Key.Companion.Enter, Key.Companion.DirectionUp, Key.Companion.DirectionDown,
-        Key.Companion.DirectionLeft, Key.Companion.DirectionRight,
-        Key.Companion.V, Key.Companion.B, Key.Companion.N, Key.Companion.M,
-        Key.Companion.O, Key.Companion.Comma, Key.Companion.K, Key.Companion.L
+        Key.Z, Key.X, Key.ShiftLeft,
+        Key.Enter, Key.DirectionUp, Key.DirectionDown,
+        Key.DirectionLeft, Key.DirectionRight,
+        Key.V, Key.B, Key.N, Key.M,
+        Key.O, Key.Comma, Key.K, Key.L
     )
-
 
     private fun KeyActionBuilder.keys(isPressed: Boolean) {
         keysToMap.forEach { targetKey ->

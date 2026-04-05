@@ -33,9 +33,11 @@ class Nes(
     }
 
     fun saveState(fname: String?) {
+
     }
 
     fun loadState(fname: String?) {
+
     }
 
     fun reset() {

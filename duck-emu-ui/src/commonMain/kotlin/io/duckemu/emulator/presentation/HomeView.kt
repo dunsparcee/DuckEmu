@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -252,10 +253,10 @@ fun DuckEmuHome(
                 }
             }
         } else {
-            val grid =
-                if (LocalWindowInfo.current.containerSize.width > 600) GridCells.Fixed(5) else GridCells.Fixed(
-                    2
-                )
+            val grid = if (LocalWindowInfo.current.containerSize.width > 700)
+                GridCells.Fixed(4)
+            else
+                GridCells.Fixed(2)
             LazyVerticalGrid(
                 columns = grid,
                 modifier = Modifier.weight(1f),
@@ -263,14 +264,15 @@ fun DuckEmuHome(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                games.forEach { console ->
-                    console.value.forEach { it ->
-                        if (searchQuery.isBlank() || searchMatch(searchQuery, it.name)) {
-                            item {
-                                GameCard(it, { onGameClick(it) })
-                            }
-                        }
-                    }
+                val allGames = games.values.flatten().filter {
+                    searchQuery.isBlank() || searchMatch(searchQuery, it.name)
+                }
+
+                items(allGames) { game ->
+                    GameCard(
+                        game = game,
+                        onClick = { onGameClick(game) }
+                    )
                 }
             }
         }

@@ -53,7 +53,7 @@ fun GameCard(
                 contentDescription = game.cropName(),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1f),
+                    .aspectRatio(0.75f),
                 contentScale = ContentScale.Crop
             )
 
@@ -63,6 +63,7 @@ fun GameCard(
                     color = Color.LightGray,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
+                    minLines = 2,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth()

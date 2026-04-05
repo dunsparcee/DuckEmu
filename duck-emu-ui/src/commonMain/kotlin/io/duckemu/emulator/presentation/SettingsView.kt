@@ -68,7 +68,7 @@ fun DeltaSettingsScreen(onClose: () -> Unit) {
             item { SectionHeader("Controllers") }
             item {
                 SettingsGroup {
-                    SettingsItem("Player 1", "Touch Screen")
+                    SettingsItem("Player 1")
                     SettingsItem("Player 2")
                 }
             }
@@ -109,13 +109,13 @@ fun SettingsGroup(content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-fun SettingsItem(title: String, subtitle: String? = null) {
+fun SettingsItem(title: String) {
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
-                .clickable { /* Navigate */ }
+                .clickable {  }
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -123,9 +123,6 @@ fun SettingsItem(title: String, subtitle: String? = null) {
             Text(text = title, color = Color.White, fontSize = 17.sp)
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (subtitle != null) {
-                    Text(text = subtitle, color = DuckEmuTextSecondary, fontSize = 17.sp)
-                }
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = null,
