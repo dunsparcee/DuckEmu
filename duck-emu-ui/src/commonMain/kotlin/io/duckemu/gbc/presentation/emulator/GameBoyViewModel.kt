@@ -26,7 +26,7 @@ import okio.Path.Companion.toPath
 import okio.SYSTEM
 import kotlin.time.Clock
 
-object GameBoyViewModel : EmulatorViewModel(consoleId =  "gbc") {
+object GameBoyViewModel : EmulatorViewModel(consoleId = "gbc") {
     var gameBoy: GameBoy? = null
     var gameLoaded = PlatformFile("")
     val inputHandler = Controller()
@@ -41,6 +41,34 @@ object GameBoyViewModel : EmulatorViewModel(consoleId =  "gbc") {
                 write(flatten)
             }
         }
+    }
+
+    override fun connectController(player: Int, controller: Int) {
+        GamepadController.startListening(
+            playerSources[player]!!.port,
+            onPressed = {
+                when (it) {
+                    "DPAD_RIGHT" -> upDown(inputHandler, true, 0)
+                    "DPAD_LEFT" -> upDown(inputHandler, true, 1)
+                    "DPAD_UP" -> upDown(inputHandler, true, 2)
+                    "DPAD_DOWN" -> upDown(inputHandler, true, 3)
+                    "BUTTON_B" -> upDown(inputHandler, true, 4)
+                    "BUTTON_A" -> upDown(inputHandler, true, 5)
+                    "BUTTON_SELECT" -> upDown(inputHandler, true, 6)
+                    "BUTTON_START" -> upDown(inputHandler, true, 7)
+                }
+            }, onReleased = {
+                when (it) {
+                    "DPAD_RIGHT" -> upDown(inputHandler, false, 0)
+                    "DPAD_LEFT" -> upDown(inputHandler, false, 1)
+                    "DPAD_UP" -> upDown(inputHandler, false, 2)
+                    "DPAD_DOWN" -> upDown(inputHandler, false, 3)
+                    "BUTTON_B" -> upDown(inputHandler, false, 4)
+                    "BUTTON_A" -> upDown(inputHandler, false, 5)
+                    "BUTTON_SELECT" -> upDown(inputHandler, false, 6)
+                    "BUTTON_START" -> upDown(inputHandler, false, 7)
+                }
+            })
     }
 
     override fun listSaves(): List<String> {
@@ -146,30 +174,6 @@ object GameBoyViewModel : EmulatorViewModel(consoleId =  "gbc") {
 }
 
 fun setupKeyHandler(gameBoyViewModel: GameBoyViewModel): KeyHandler {
-    GamepadController.startListening(onButton = {
-        when(it) {
-            "BUTTON_B_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 4)
-            "BUTTON_A_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 5)
-            "BUTTON_SELECT_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 6)
-            "BUTTON_START_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 7)
-            "DPAD_RIGHT_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 0)
-            "DPAD_LEFT_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 1)
-            "DPAD_UP_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 2)
-            "DPAD_DOWN_DOWN" -> upDown(gameBoyViewModel.inputHandler, true, 3)
-            "BUTTON_B_UP" -> upDown(gameBoyViewModel.inputHandler, false, 4)
-            "BUTTON_A_UP" -> upDown(gameBoyViewModel.inputHandler, false, 5)
-            "BUTTON_SELECT_UP" -> upDown(gameBoyViewModel.inputHandler, false, 6)
-            "BUTTON_START_UP" -> upDown(gameBoyViewModel.inputHandler, false, 7)
-            "DPAD_RIGHT_UP" -> upDown(gameBoyViewModel.inputHandler, false, 0)
-            "DPAD_LEFT_UP" -> upDown(gameBoyViewModel.inputHandler, false, 1)
-            "DPAD_UP_UP" -> upDown(gameBoyViewModel.inputHandler, false, 2)
-            "DPAD_DOWN_UP" -> upDown(gameBoyViewModel.inputHandler, false, 3)
-        }
-    }, onAxis = { it, xit ->
-        println(it)
-        println(xit)
-    })
-
     return KeyHandler {
         onPress {
             keys(gameBoyViewModel.inputHandler, true)
@@ -210,9 +214,4 @@ private fun KeyActionBuilder.keys(inputHandler: Controller, isPressed: Boolean) 
 fun upDown(inputHandler: Controller, isPressed: Boolean, index: Int) {
     if (isPressed) inputHandler.buttonPressed(index)
     else inputHandler.buttonRelease(index)
-}
-
-fun upDown(inputHandler: Controller, index: Int) {
-    inputHandler.buttonPressed(index)
-    inputHandler.buttonRelease(index)
 }

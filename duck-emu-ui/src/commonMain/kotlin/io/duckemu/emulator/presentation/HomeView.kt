@@ -83,9 +83,10 @@ object MainViewModel {
         val config = remember { ConfigRepository() }
         val gameRepository = remember { GameRepository() }
         val gameLibraryViewModel = remember { GameLibraryViewModel(gameRepository, config) }
-        gameLibraryViewModel.loadConfig()
         val scope = rememberCoroutineScope()
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+        gameLibraryViewModel.loadConfig()
         val games by gameLibraryViewModel.gamesByConsole.collectAsState()
 
         val launcher = rememberFilePickerLauncher { file ->

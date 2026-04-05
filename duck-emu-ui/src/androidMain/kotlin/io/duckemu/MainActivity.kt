@@ -1,16 +1,14 @@
 package io.duckemu
 
-import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import io.duckemu.emulator.presentation.MainViewModel
 import io.duckemu.emulator.repository.config.appContext
-import io.github.vinceglb.filekit.FileKit
-import io.github.vinceglb.filekit.dialogs.init
 import io.kreenshot.KreenshotCapture
 import kotlinx.coroutines.runBlocking
+import io.duckemu.emulator.data.ControllerSource
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,6 +17,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
+                ControllerSource.init(listOf(ControllerSource.TOUCH, ControllerSource.GAMEPAD))
                 KreenshotCapture.init(this)
                 MainViewModel.MainScreen(mobileDevice = true)
             }
