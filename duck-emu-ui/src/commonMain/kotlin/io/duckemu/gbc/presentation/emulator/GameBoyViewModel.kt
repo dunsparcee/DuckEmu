@@ -1,12 +1,7 @@
 package io.duckemu.gbc.presentation.emulator
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.Key
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import io.duckemu.EmulatorViewModel
 import io.duckemu.controller.GamepadController
 import io.duckemu.emulator.repository.config.ControllerThemeStore
@@ -24,9 +19,6 @@ import io.github.vinceglb.filekit.filesDir
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.path
 import io.github.vinceglb.filekit.readBytes
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okio.FileSystem
@@ -34,20 +26,11 @@ import okio.Path.Companion.toPath
 import okio.SYSTEM
 import kotlin.time.Clock
 
-object GameBoyViewModel : EmulatorViewModel() {
+object GameBoyViewModel : EmulatorViewModel(consoleId =  "gbc") {
     var gameBoy: GameBoy? = null
     var gameLoaded = PlatformFile("")
-    var controllerTheme by mutableStateOf<ControllerTheme>(ControllerTheme.GBC())
     val inputHandler = Controller()
-
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var controller: KeyHandler = setupKeyHandler(this)
-
-    init {
-        scope.launch {
-            controllerTheme = ControllerThemeStore.get("gbc")
-        }
-    }
 
     override fun saveState() {
         gameBoy?.let {
@@ -120,7 +103,7 @@ object GameBoyViewModel : EmulatorViewModel() {
             }
 
             startup()
-            scope.launch {
+            viewModelScope.launch {
                 while (running()) {
                     delay(3000)
                     save()

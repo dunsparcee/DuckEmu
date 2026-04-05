@@ -54,29 +54,21 @@ sealed class ControllerTheme {
     }
 
     @Serializable
-    @SerialName("gba")
-    data class GBA(
-        override val backgroundColorArgb: Int = 0xFF222222.toInt(),
-        override val buttonColorArgb: Int = 0xFFD1D1D1.toInt(),
+    @SerialName("nes")
+    data class NES(
+        override val backgroundColorArgb: Int = 0xFF8B8B8B.toInt(), // NesGray
+        override val buttonColorArgb: Int = 0xFFE60012.toInt(),     // NesRed
         override val backgroundAlpha: Float = 1f,
-        val actionButtonSize: Float = 80f,
-        val dpadSize: Float = 150f,
-        val lButtonOffsetX: Float = 0f,
-        val rButtonOffsetX: Float = 0f,
-    ) : ControllerTheme()
-
-    @Serializable
-    @SerialName("n64")
-    data class N64(
-        override val backgroundColorArgb: Int = 0xFF111111.toInt(),
-        override val buttonColorArgb: Int = 0xFFD1D1D1.toInt(),
-        override val backgroundAlpha: Float = 1f,
-        val analogStickSize: Float = 100f,
-        val analogOffsetX: Float = 0f,
-        val analogOffsetY: Float = 0f,
-        val cButtonSize: Float = 40f,
-        val dpadSize: Float = 100f,
-    ) : ControllerTheme()
+        val dpadSize: Float = 140f,
+        val actionButtonSize: Float = 70f,
+        val aYOffset: Float = -10f,
+        val bYOffset: Float = 30f,
+        val dpadXOffset: Float = 24f,
+        val dpadYOffset: Float = 10f
+    ) : ControllerTheme() {
+        val backgroundColor get() = Color(backgroundColorArgb)
+        val buttonColor get() = Color(buttonColorArgb)
+    }
 }
 
 val GbcPurple = Color(0xFF3978F5)

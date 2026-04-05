@@ -70,8 +70,6 @@ fun DeltaSettingsScreen(onClose: () -> Unit) {
                 SettingsGroup {
                     SettingsItem("Player 1", "Touch Screen")
                     SettingsItem("Player 2")
-                    SettingsItem("Player 3")
-                    SettingsItem("Player 4")
                 }
             }
 
@@ -81,11 +79,7 @@ fun DeltaSettingsScreen(onClose: () -> Unit) {
             item {
                 SettingsGroup {
                     SettingsItem("Nintendo")
-                    SettingsItem("Super Nintendo")
-                    SettingsItem("Nintendo 64")
-                    SettingsItem("Game Boy Color")
-                    SettingsItem("Game Boy Advance")
-                    SettingsItem("Nintendo DS")
+                    SettingsItem("GameBoy")
                 }
             }
 

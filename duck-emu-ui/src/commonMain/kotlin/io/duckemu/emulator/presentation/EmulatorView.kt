@@ -89,12 +89,17 @@ fun EmuSettings(
                     },
                     onBack = { showAction = SettingsAction.NONE }
                 )
-
                 SettingsAction.SCREENSHOT -> {
                     viewModel.closeSettingsSheet()
                     viewModel.captureAndSave()
                 }
+                SettingsAction.CONTROLLER -> {
+                    SelectTheme(listOf(viewModel.controllerTheme!!), onSelect = {
 
+                    }, onBack = {
+
+                    })
+                }
                 else -> MenuGridContent(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -105,10 +110,9 @@ fun EmuSettings(
                         when (it) {
                             SettingsAction.SAVE -> viewModel.saveState()
                             SettingsAction.LOAD -> viewModel.loadState()
-                            SettingsAction.LIST_LOAD, SettingsAction.SCREENSHOT -> showAction = it
+                            SettingsAction.LIST_LOAD, SettingsAction.SCREENSHOT, SettingsAction.CONTROLLER -> showAction = it
                             SettingsAction.AUDIO -> viewModel.toggleAudio()
                             SettingsAction.FORWARD -> TODO()
-                            SettingsAction.CONTROLLER -> TODO()
                             SettingsAction.EXIT_GAME -> viewModel.stop()
                             else -> {}
                         }

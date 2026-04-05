@@ -6,6 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.duckemu.emulator.repository.config.ControllerThemeStore
+import io.duckemu.gbc.presentation.emulator.ControllerTheme
 import io.github.compose_keyhandler.KeyHandler
 import io.github.vinceglb.filekit.PlatformFile
 import io.kreenshot.KreenshotCapture
@@ -14,7 +16,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 
-abstract class EmulatorViewModel : ViewModel() {
+abstract class EmulatorViewModel(consoleId: String) : ViewModel() {
+    init {
+        viewModelScope.launch {
+            controllerTheme = ControllerThemeStore.get(consoleId)
+        }
+    }
+
     fun openSettingsSheet() {
         showSheet = true
     }
@@ -24,6 +32,7 @@ abstract class EmulatorViewModel : ViewModel() {
     }
 
     abstract suspend fun start(path: PlatformFile)
+
     abstract fun stop()
     abstract fun isEmuRunning(): Boolean
     abstract fun controllerSetup(): KeyHandler
@@ -32,7 +41,6 @@ abstract class EmulatorViewModel : ViewModel() {
     abstract fun loadState()
     abstract fun saveState()
     abstract fun toggleAudio()
-
     fun captureAndSave() {
         viewModelScope.launch(Dispatchers.Default) {
             delay(1000)
@@ -49,6 +57,8 @@ abstract class EmulatorViewModel : ViewModel() {
     }
 
     var soundEnable by mutableStateOf(true)
+
+    var controllerTheme by mutableStateOf<ControllerTheme?>(null)
     var showSheet by mutableStateOf(false)
     var isRunning by mutableStateOf(false)
     var graphics by mutableStateOf<ImageBitmap?>(null)
