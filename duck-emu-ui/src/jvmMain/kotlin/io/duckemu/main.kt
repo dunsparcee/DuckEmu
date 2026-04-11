@@ -10,17 +10,19 @@ import io.kreenshot.KreenshotCapture
 import kotlinx.coroutines.runBlocking
 
 fun main() = application {
+    val titleName = "DuckEmu"
+
     Window(onCloseRequest = {
         runBlocking {
             MainViewModel.consoleRunning?.emulator?.stop()
         }
         exitApplication()
-    } , title = "DuckEmu") {
+    } , title = titleName) {
         MaterialTheme {
             ControllerSource.init(listOf(ControllerSource.KEYBOARD, ControllerSource.GAMEPAD))
             KreenshotCapture.init(window)
-            FileKit.init("duckemu")
-            MainViewModel.MainScreen(true)
+            FileKit.init(titleName)
+            MainViewModel.MainScreen(false)
         }
     }
 }
