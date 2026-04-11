@@ -1,7 +1,7 @@
 package io.duckemu.emulator.repository.config
 
 import io.duckemu.emulator.repository.game.Game
-import io.duckemu.gbc.presentation.emulator.ControllerTheme
+import io.duckemu.emulator.data.ControllerTheme
 import io.github.xxfast.kstore.KStore
 import io.github.xxfast.kstore.file.storeOf
 import kotlinx.io.files.Path

@@ -4,7 +4,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalWindowInfo
 import io.duckemu.emulator.presentation.ControllerSourceContent
 
 enum class SettingsAction {
@@ -32,6 +34,13 @@ class EmuController(
 )
 
 val defaultEmuController = EmuController()
+
+@Composable
+fun isLandscape(): Boolean {
+    val windowInfo = LocalWindowInfo.current
+    val size = windowInfo.containerSize
+    return size.width > size.height
+}
 
 
 

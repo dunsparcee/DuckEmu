@@ -106,8 +106,10 @@ object MainViewModel {
 
                         if (mobileDevice)
                             it.mobileSkin.invoke()
-                        else
+                        else {
                             EmulatorScreen(it.emulator)
+                            EmuSettings(it.emulator, Color.Black.copy(alpha = 0.6f))
+                        }
                     }
                 }
             } ?: run {

@@ -43,6 +43,10 @@ object GameBoyViewModel : EmulatorViewModel(consoleId = "gbc") {
         }
     }
 
+    override fun setSpeed() {
+        gameBoy?.setSpeed(speed)
+    }
+
     override fun connectController(player: Int, controller: Int) {
         GamepadController.startListening(
             playerSources[player]!!.port,
@@ -120,8 +124,7 @@ object GameBoyViewModel : EmulatorViewModel(consoleId = "gbc") {
         gameBoy = GameBoy(isGbc, palette, cartridgeBin, inputHandler) { image, _ ->
             graphics = image
         }.apply {
-            setSoundEnable(DuckEmuConfig.enableSound)
-            setSpeed(DuckEmuConfig.speed)
+            setSoundEnable(true)
             gameLoaded = path
             val sRamFile = FileKit.filesDir.path.plus("/${gameLoaded.name}.sram.sav")
 
@@ -176,6 +179,9 @@ object GameBoyViewModel : EmulatorViewModel(consoleId = "gbc") {
 fun setupKeyHandler(gameBoyViewModel: GameBoyViewModel): KeyHandler {
     return KeyHandler {
         onPress {
+            key(Key.Escape) {
+                gameBoyViewModel.showSheet = !gameBoyViewModel.showSheet
+            }
             keys(gameBoyViewModel.inputHandler, true)
         }
         onRelease {

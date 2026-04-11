@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.duckemu.emulator.presentation.EmuSettings
 import io.duckemu.emulator.presentation.EmulatorScreen
-import io.duckemu.gbc.presentation.emulator.ControllerTheme
+import io.duckemu.emulator.data.ControllerTheme
 
 val NesRed = Color(0xFFE60012)
 val NesGray = Color(0xFF8B8B8B)

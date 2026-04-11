@@ -45,7 +45,7 @@ import io.duckemu.emulator.data.ControllerSource
 import io.duckemu.emulator.data.EmuController
 import io.duckemu.emulator.data.SettingsAction
 import io.duckemu.emulator.data.defaultEmuController
-import io.duckemu.gbc.presentation.emulator.ControllerTheme
+import io.duckemu.emulator.data.ControllerTheme
 import kotlin.time.Instant
 
 @Composable
@@ -86,7 +86,8 @@ fun EmuSettings(
             onDismissRequest = { viewModel.closeSettingsSheet() },
             sheetState = sheetState,
             containerColor = containerColor,
-            contentColor = Color.White
+            contentColor = Color.White,
+            modifier = Modifier.fillMaxWidth()
         ) {
             when (viewModel.settingsAction) {
                 SettingsAction.LIST_LOAD -> SaveListContent(
@@ -113,7 +114,6 @@ fun EmuSettings(
                 else -> MenuGridContent(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.5f)
                         .padding(horizontal = 16.dp),
                     onClose = { viewModel.closeSettingsSheet() },
                     onAction = { viewModel.onSettingsAction(it) }
@@ -576,7 +576,11 @@ private fun PlayerDetailScreen(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
             }
             Text("Player $player", style = MaterialTheme.typography.titleMedium)
         }

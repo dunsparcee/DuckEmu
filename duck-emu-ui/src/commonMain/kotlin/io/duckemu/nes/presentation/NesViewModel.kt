@@ -88,6 +88,10 @@ object NesViewModel : EmulatorViewModel(consoleId = "nes") {
 
     }
 
+    override fun setSpeed() {
+
+    }
+
     fun setupKeyHandler(): KeyHandler {
         return KeyHandler {
             onPress {

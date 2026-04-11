@@ -12,7 +12,7 @@ import io.duckemu.emulator.data.EmuController
 import io.duckemu.emulator.data.SettingsAction
 import io.duckemu.emulator.data.defaultEmuController
 import io.duckemu.emulator.repository.config.ControllerThemeStore
-import io.duckemu.gbc.presentation.emulator.ControllerTheme
+import io.duckemu.emulator.data.ControllerTheme
 import io.github.compose_keyhandler.KeyHandler
 import io.github.vinceglb.filekit.PlatformFile
 import io.kreenshot.KreenshotCapture
@@ -31,6 +31,7 @@ abstract class EmulatorViewModel(consoleId: String) : ViewModel() {
     var openSettings by mutableStateOf(false)
     var settingsAction by mutableStateOf(SettingsAction.NONE)
     var playerSources by mutableStateOf(mapOf(1 to defaultEmuController))
+    var speed by mutableStateOf(1)
 
     init {
         viewModelScope.launch {
@@ -47,7 +48,9 @@ abstract class EmulatorViewModel(consoleId: String) : ViewModel() {
     abstract fun loadState()
     abstract fun saveState()
     abstract fun toggleAudio()
+    abstract fun setSpeed()
     abstract fun connectController(player: Int, controller: Int)
+
 
     fun captureAndSave() {
         viewModelScope.launch(Dispatchers.Default) {
@@ -69,7 +72,7 @@ abstract class EmulatorViewModel(consoleId: String) : ViewModel() {
             SettingsAction.SAVE -> saveState()
             SettingsAction.LOAD -> loadState()
             SettingsAction.AUDIO -> toggleAudio()
-            SettingsAction.FORWARD -> TODO()
+            SettingsAction.FORWARD -> speedForward()
             SettingsAction.EXIT_GAME -> stop()
             SettingsAction.SCREENSHOT -> {
                 closeSettingsSheet()
@@ -102,5 +105,14 @@ abstract class EmulatorViewModel(consoleId: String) : ViewModel() {
         if (source.source == ControllerSource.GAMEPAD) {
             connectController(player, source.port)
         }
+    }
+
+    fun speedForward() {
+        if (speed < 8)
+            this.speed = speed * 2
+        else
+            this.speed = 1
+
+        setSpeed()
     }
 }

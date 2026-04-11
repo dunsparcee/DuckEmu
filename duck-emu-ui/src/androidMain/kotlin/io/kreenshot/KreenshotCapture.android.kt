@@ -12,6 +12,7 @@ import android.os.Looper
 import android.provider.MediaStore
 import android.view.PixelCopy
 import android.view.Window
+import androidx.annotation.RequiresApi
 import java.io.ByteArrayOutputStream
 import androidx.core.graphics.createBitmap
 import java.io.OutputStream
@@ -24,6 +25,7 @@ actual object KreenshotCapture {
         activityRef = WeakReference(activity)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     actual fun capture(onComplete: (ByteArray?) -> Unit) {
         val activity = activityRef?.get()
         if (activity == null) {
@@ -43,26 +45,18 @@ actual object KreenshotCapture {
 
         val handler = Handler(Looper.getMainLooper())
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            PixelCopy.request(
-                window,
-                bitmap,
-                { result ->
-                    if (result == PixelCopy.SUCCESS) {
-                        onComplete(bitmapToByteArray(bitmap))
-                    } else {
-                        onComplete(null)
-                    }
-                },
-                handler
-            )
-        } else {
-            val view = decorView.rootView
-            view.isDrawingCacheEnabled = true
-            val cacheBitmap = Bitmap.createBitmap(view.drawingCache)
-            view.isDrawingCacheEnabled = false
-            onComplete(bitmapToByteArray(cacheBitmap))
-        }
+        PixelCopy.request(
+            window,
+            bitmap,
+            { result ->
+                if (result == PixelCopy.SUCCESS) {
+                    onComplete(bitmapToByteArray(bitmap))
+                } else {
+                    onComplete(null)
+                }
+            },
+            handler
+        )
     }
 
     private fun bitmapToByteArray(bitmap: Bitmap): ByteArray {

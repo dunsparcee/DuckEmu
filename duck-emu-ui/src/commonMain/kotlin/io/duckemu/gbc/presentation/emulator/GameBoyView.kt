@@ -20,56 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.duckemu.emulator.data.ControllerTheme
+import io.duckemu.emulator.data.isLandscape
 import io.duckemu.emulator.presentation.EmuSettings
 import io.duckemu.emulator.presentation.EmulatorScreen
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-
-@Serializable
-sealed class ControllerTheme {
-    abstract val backgroundColorArgb: Int
-    abstract val buttonColorArgb: Int
-    abstract val backgroundAlpha: Float
-
-    @Serializable
-    @SerialName("gbc")
-    data class GBC(
-        override val backgroundColorArgb: Int = 0xFF3978F5.toInt(),
-        override val buttonColorArgb: Int = 0xFFD1D1D1.toInt(),
-        override val backgroundAlpha: Float = 1f,
-        val actionButtonSize: Float = 80f,
-        val dpadSize: Float = 150f,
-        val dpadX: Float = 30f,
-        val dpadY: Float = 0f,
-        val aX: Float = -10f,
-        val aY: Float = -20f,
-        val bX: Float = -10f,
-        val bY: Float = 40f,
-        val smallButtonWidth: Float = 35f,
-        val startSelectX: Float = 0f,
-        val startSelectY: Float = 0f
-    ) : ControllerTheme() {
-        val backgroundColor get() = Color(backgroundColorArgb)
-        val buttonColor get() = Color(buttonColorArgb)
-    }
-
-    @Serializable
-    @SerialName("nes")
-    data class NES(
-        override val backgroundColorArgb: Int = 0xFF8B8B8B.toInt(), // NesGray
-        override val buttonColorArgb: Int = 0xFFE60012.toInt(),     // NesRed
-        override val backgroundAlpha: Float = 1f,
-        val dpadSize: Float = 140f,
-        val actionButtonSize: Float = 70f,
-        val aYOffset: Float = -10f,
-        val bYOffset: Float = 30f,
-        val dpadXOffset: Float = 24f,
-        val dpadYOffset: Float = 10f
-    ) : ControllerTheme() {
-        val backgroundColor get() = Color(backgroundColorArgb)
-        val buttonColor get() = Color(buttonColorArgb)
-    }
-}
 
 val GbcPurple = Color(0xFF3978F5)
 val ButtonGray = Color(0xFFD1D1D1)
@@ -80,8 +34,107 @@ var color = Color(0xEE001932)
 fun GameBoySkin(viewModel: GameBoyViewModel) {
     val theme = viewModel.controllerTheme as? ControllerTheme.GBC ?: ControllerTheme.GBC()
 
-    EmuSettings(viewModel, containerColor = color)
+    EmuSettings(viewModel, Color.Black.copy(alpha = 0.85f))
 
+    if (isLandscape())
+        GameboyLandscape(viewModel, theme)
+    else
+        GameBoyHandheld(viewModel, theme)
+}
+
+@Composable
+private fun GameboyLandscape(
+    viewModel: GameBoyViewModel,
+    theme: ControllerTheme.GBC
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        EmulatorScreen(viewModel)
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 16.dp, bottom = 24.dp)
+        ) {
+            DPad(
+                size = theme.dpadSize.dp,
+                color = theme.buttonColor.copy(alpha = 0.4f),
+                onPress = { upDown(viewModel.inputHandler, true, it) },
+                onRelease = { upDown(viewModel.inputHandler, false, it) }
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 16.dp, bottom = 24.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ActionButton(
+                    label = "B",
+                    size = theme.actionButtonSize.dp,
+                    color = theme.buttonColor.copy(alpha = 0.4f),
+                    modifier = Modifier.offset(y = theme.bY.dp),
+                    onPress = { viewModel.inputHandler.buttonPressed(4) },
+                    onRelease = { viewModel.inputHandler.buttonRelease(4) }
+                )
+                Spacer(Modifier.width(15.dp))
+                ActionButton(
+                    label = "A",
+                    size = theme.actionButtonSize.dp,
+                    color = theme.buttonColor.copy(alpha = 0.4f),
+                    modifier = Modifier.offset(y = theme.aY.dp),
+                    onPress = { viewModel.inputHandler.buttonPressed(5) },
+                    onRelease = { viewModel.inputHandler.buttonRelease(5) }
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(600.dp)
+        ) {
+            SmallRoundButton(
+                label = "SELECT",
+                width = theme.smallButtonWidth.dp,
+                color = theme.buttonColor.copy(alpha = 0.4f),
+                onPress = { viewModel.inputHandler.buttonPressed(6) },
+                onRelease = { viewModel.inputHandler.buttonRelease(6) }
+            )
+            SmallRoundButton(
+                label = "START",
+                width = theme.smallButtonWidth.dp,
+                color = theme.buttonColor.copy(alpha = 0.4f),
+                onPress = { viewModel.inputHandler.buttonPressed(7) },
+                onRelease = { viewModel.inputHandler.buttonRelease(7) }
+            )
+        }
+
+        IconButton(
+            onClick = { viewModel.openSettingsSheet() },
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Settings",
+                tint = Color.White.copy(alpha = 0.5f),
+                modifier = Modifier
+                    .size(24.dp)
+                    .background(Color.White.copy(alpha = 0.1f), CircleShape)
+                    .clip(CircleShape)
+            )
+        }
+    }
+}
+
+@Composable
+private fun GameBoyHandheld(
+    viewModel: GameBoyViewModel,
+    theme: ControllerTheme.GBC
+) {
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
@@ -192,6 +245,53 @@ fun GameBoySkin(viewModel: GameBoyViewModel) {
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun DPadLandspace(
+    size: Dp = 150.dp,
+    color: Color = ButtonGray,
+    onPress: (Int) -> Unit,
+    onRelease: (Int) -> Unit
+) {
+    val armThickness = size * 0.33f
+    val centerSize = size * 0.3f
+
+    Box(Modifier.size(size), contentAlignment = Alignment.Center) {
+        // Cross arms
+        Box(
+            Modifier
+                .size(size, armThickness)
+                .clip(RoundedCornerShape(6.dp))
+                .background(color)
+        )
+        Box(
+            Modifier
+                .size(armThickness, size)
+                .clip(RoundedCornerShape(6.dp))
+                .background(color)
+        )
+        // Arrow labels
+        Text("▲", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp,
+            modifier = Modifier.offset(y = -(size * 0.3f)))
+        Text("▼", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp,
+            modifier = Modifier.offset(y = size * 0.3f))
+        Text("◀", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp,
+            modifier = Modifier.offset(x = -(size * 0.3f)))
+        Text("▶", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp,
+            modifier = Modifier.offset(x = size * 0.3f))
+
+        // Touch zones
+        Column(Modifier.fillMaxSize()) {
+            DPadZone(Modifier.weight(1f).fillMaxWidth(), 2, onPress, onRelease)
+            Row(Modifier.weight(1f).fillMaxWidth()) {
+                DPadZone(Modifier.weight(1f).fillMaxHeight(), 1, onPress, onRelease)
+                Spacer(Modifier.weight(1f).fillMaxHeight())
+                DPadZone(Modifier.weight(1f).fillMaxHeight(), 0, onPress, onRelease)
+            }
+            DPadZone(Modifier.weight(1f).fillMaxWidth(), 3, onPress, onRelease)
         }
     }
 }
