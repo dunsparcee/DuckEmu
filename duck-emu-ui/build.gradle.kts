@@ -1,5 +1,7 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -7,6 +9,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
+    alias(libs.plugins.serialization)
 }
 
 kotlin {
@@ -16,7 +19,7 @@ kotlin {
             freeCompilerArgs.add("-Xexpect-actual-classes")
         }
     }
-    
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -26,18 +29,28 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     jvm()
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
-            implementation("com.squareup.okio:okio:3.9.0")
+            implementation(libs.kamel.image)
+            implementation(libs.kamel.image.default)
+            implementation(libs.kstore)
+            implementation(libs.kstore.file)
+            implementation(libs.material.icons.extended)
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.okio)
             implementation(libs.lexilabs.basic.sound)
-
             implementation(libs.filekit.ui)
             implementation(libs.filekit.core)
             implementation(libs.compose.keyhandler)
@@ -54,11 +67,38 @@ kotlin {
             implementation(libs.kotlin.test)
         }
         jvmMain.dependencies {
+            implementation("net.java.jinput:jinput:2.0.10")
+            runtimeOnly("net.java.jinput:jinput:2.0.10:natives-all")
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.ktor.client.java)
         }
     }
 }
+
+val unpackJinputNatives by tasks.registering(Copy::class) {
+    val nativesJar = configurations.getByName("jvmRuntimeClasspath")
+        .resolvedConfiguration
+        .resolvedArtifacts
+        .first { it.name == "jinput" && it.classifier == "natives-all" }
+        .file
+    from(zipTree(nativesJar)) {
+        include("*.dll", "*.so", "*.dylib", "*.jnilib")
+    }
+    into(layout.buildDirectory.dir("jinput-natives"))
+}
+
+afterEvaluate {
+    listOf("run", "jvmRun").forEach { taskName ->
+        tasks.findByName(taskName)?.let { task ->
+            task.dependsOn(unpackJinputNatives)
+            (task as JavaExec).jvmArgs(
+                "-Djava.library.path=${layout.buildDirectory.dir("jinput-natives").get().asFile.absolutePath}"
+            )
+        }
+    }
+}
+
 
 android {
     namespace = "io.duckemu"
@@ -103,6 +143,12 @@ compose.desktop {
 
             macOS {
                 iconFile.set(file("icon.icns"))
+            }
+            windows {
+                iconFile.set(file("icon.ico"))
+            }
+            linux {
+                iconFile.set(file("icon.png"))
             }
         }
     }

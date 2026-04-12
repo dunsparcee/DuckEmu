@@ -1,51 +1,28 @@
 package io.duckemu
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.window.MenuBar
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import io.duckemu.gbc.EmulatorScreen
-import io.duckemu.gbc.GameBoyViewModel
-import io.duckemu.gbc.setupKeyHandler
-import io.github.compose_keyhandler.KeyHandlerHost
+import io.duckemu.emulator.data.ControllerSource
+import io.duckemu.emulator.presentation.MainViewModel
 import io.github.vinceglb.filekit.FileKit
-import io.github.vinceglb.filekit.dialogs.openFilePicker
-import kotlinx.coroutines.launch
+import io.kreenshot.KreenshotCapture
+import kotlinx.coroutines.runBlocking
 
 fun main() = application {
-    val gbController = remember { GameBoyViewModel() }
-    val keyHandler = remember { setupKeyHandler(gbController) }
-    val scope = rememberCoroutineScope()
+    val titleName = "DuckEmu"
 
-    Window(onCloseRequest = ::exitApplication, title = "DuckEmu") {
-        MenuBar {
-            Menu("File") {
-                Item(
-                    "Open ROM",
-                    onClick = {
-                        scope.launch {
-                            val file = FileKit.openFilePicker()
-                            file?.let {
-                                gbController.startGBC(it)
-                            }
-                        }
-                    }
-                )
-
-                Item("Close", onClick = {
-                    scope.launch {
-                        gbController.stopGBC()
-                    }
-                })
-            }
+    Window(onCloseRequest = {
+        runBlocking {
+            MainViewModel.consoleRunning?.emulator?.stop()
         }
-
-        KeyHandlerHost(keyHandler) {
-            Box {
-                EmulatorScreen(gbController)
-            }
+        exitApplication()
+    } , title = titleName) {
+        MaterialTheme {
+            ControllerSource.init(listOf(ControllerSource.KEYBOARD, ControllerSource.GAMEPAD))
+            KreenshotCapture.init(window)
+            FileKit.init(titleName)
+            MainViewModel.MainScreen(false)
         }
     }
 }
