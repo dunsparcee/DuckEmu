@@ -1,16 +1,15 @@
 package io.duckemu.nes.domain
 
 import androidx.compose.ui.graphics.ImageBitmap
-import io.duckemu.gbc.domain.nes.*
-import io.duckemu.nes.domain.Ppu
-import io.duckemu.nes.domain.Regs
-import io.duckemu.nes.domain.Rom
+import io.duckemu.gbc.domain.nes.Cpu
+import io.duckemu.gbc.domain.nes.Mbc
 import io.duckemu.nes.domain.mapper.Mapper
 import io.duckemu.nes.domain.mapper.makeMapper
 import io.duckemu.nes.domain.ui.Renderer
 
 class Nes(
-    val renderer: Renderer
+    val renderer: Renderer,
+    var soundEnable: Boolean = true
 ) {
 
     suspend fun load(fname: String, saveFile: String) {
@@ -57,9 +56,11 @@ class Nes(
         val sndi = renderer.requestSound()
         val inpi = renderer.requestInput(2, 8)
 
-        if (sndi != null) {
+        if (sndi != null && soundEnable) {
             apu.genAudio(sndi)
             renderer.outputSound(sndi)
+        } else {
+            renderer.fillSilence()
         }
 
         regs.setInput(inpi.buf)

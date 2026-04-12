@@ -47,7 +47,7 @@ private fun GameboyLandscape(
     viewModel: GameBoyViewModel,
     theme: ControllerTheme.GBC
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
         EmulatorScreen(viewModel)
 
         Box(
@@ -135,7 +135,7 @@ private fun GameBoyHandheld(
     viewModel: GameBoyViewModel,
     theme: ControllerTheme.GBC
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()

@@ -34,4 +34,5 @@ expect class Renderer() {
     fun outputScreen(info: ScreenInfo): ImageBitmap
     fun outputSound(info: SoundInfo)
     fun onKey(keyCode: Key, press: Boolean)
+    fun fillSilence()
 }

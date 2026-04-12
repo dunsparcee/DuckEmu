@@ -2,6 +2,8 @@ package io.duckemu.nes.presentation
 
 import androidx.compose.ui.input.key.Key
 import io.duckemu.EmulatorViewModel
+import io.duckemu.controller.GamepadController
+import io.duckemu.gbc.presentation.emulator.GameBoyViewModel.inputHandler
 import io.duckemu.nes.domain.Nes
 import io.duckemu.nes.domain.ui.Renderer
 import io.github.compose_keyhandler.KeyActionBuilder
@@ -15,6 +17,7 @@ object NesViewModel : EmulatorViewModel(consoleId = "nes") {
     var gameLoaded = ""
     private var job: Job? = null
     private val scope = CoroutineScope(Dispatchers.Default)
+    var frameDurationMs = 16 //60 FPS
 
     override suspend fun start(path: PlatformFile) {
         stop()
@@ -28,9 +31,6 @@ object NesViewModel : EmulatorViewModel(consoleId = "nes") {
     }
 
     fun run() {
-        val fps = 60
-        val frameDurationMs = 1000.0 / fps
-
         while (true) {
             val start = Clock.System.now().toEpochMilliseconds()
             graphics = nes?.execFrame()
@@ -65,7 +65,9 @@ object NesViewModel : EmulatorViewModel(consoleId = "nes") {
     }
 
     override fun toggleAudio() {
-
+        nes?.let {
+            it.soundEnable = !it.soundEnable
+        }
     }
 
     override fun controllerSetup(): KeyHandler {
@@ -85,16 +87,43 @@ object NesViewModel : EmulatorViewModel(consoleId = "nes") {
     }
 
     override fun connectController(player: Int, controller: Int) {
-
+        GamepadController.startListening(
+            playerSources[player]!!.port,
+            onPressed = {
+                when (it) {
+                    "DPAD_RIGHT" -> upDown(true, Key.DirectionRight)
+                    "DPAD_LEFT" -> upDown(true, Key.DirectionLeft)
+                    "DPAD_UP" -> upDown(true, Key.DirectionUp)
+                    "DPAD_DOWN" -> upDown(true, Key.DirectionDown)
+                    "BUTTON_B" -> upDown(true, Key.Z)
+                    "BUTTON_A" -> upDown(true, Key.X)
+                    "BUTTON_SELECT" -> upDown(true, Key.ShiftLeft)
+                    "BUTTON_START" -> upDown(true, Key.Enter)
+                }
+            }, onReleased = {
+                when (it) {
+                    "DPAD_RIGHT" -> upDown(false, Key.DirectionRight)
+                    "DPAD_LEFT" -> upDown(false, Key.DirectionLeft)
+                    "DPAD_UP" -> upDown(false, Key.DirectionUp)
+                    "DPAD_DOWN" -> upDown(false, Key.DirectionDown)
+                    "BUTTON_B" -> upDown(false, Key.Z)
+                    "BUTTON_A" -> upDown(false, Key.X)
+                    "BUTTON_SELECT" -> upDown(false, Key.ShiftLeft)
+                    "BUTTON_START" -> upDown(false, Key.Enter)
+                }
+            })
     }
 
     override fun setSpeed() {
-
+        // no-op
     }
 
     fun setupKeyHandler(): KeyHandler {
         return KeyHandler {
             onPress {
+                key(Key.Escape) {
+                    showSheet = !showSheet
+                }
                 keys(true)
             }
             onRelease {

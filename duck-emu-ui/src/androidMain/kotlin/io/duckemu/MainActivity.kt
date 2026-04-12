@@ -3,18 +3,23 @@ package io.duckemu
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import io.duckemu.emulator.data.ControllerSource
 import io.duckemu.emulator.presentation.MainViewModel
 import io.duckemu.emulator.repository.config.appContext
 import io.kreenshot.KreenshotCapture
 import kotlinx.coroutines.runBlocking
-import io.duckemu.emulator.data.ControllerSource
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        appContext = applicationContext
+        enableEdgeToEdge()
 
+        appContext = applicationContext
         setContent {
             MaterialTheme {
                 ControllerSource.init(listOf(ControllerSource.TOUCH, ControllerSource.GAMEPAD))

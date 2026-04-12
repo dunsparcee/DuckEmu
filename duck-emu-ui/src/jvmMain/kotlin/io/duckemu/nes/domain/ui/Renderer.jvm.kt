@@ -102,6 +102,12 @@ actual class Renderer {
         }
     }
 
+    actual fun fillSilence() {
+        if (line == null) return
+        val silence = ByteArray(sndi.sample * (sndi.bps / 8) * sndi.ch)
+        line.write(silence, 0, silence.size)
+    }
+
     actual fun onKey(keyCode: Key, press: Boolean) {
         for (i in 0..1) for (j in 0..7) if (keyCode == keysPlayers[i][j]) inpi.buf[i * 8 + j] = (if (press) 1 else 0)
     }

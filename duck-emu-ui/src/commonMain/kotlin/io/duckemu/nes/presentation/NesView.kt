@@ -34,7 +34,7 @@ fun NesSkin(viewModel: NesViewModel) {
     val theme = viewModel.controllerTheme as? ControllerTheme.NES ?: ControllerTheme.NES()
     EmuSettings(viewModel, Color(0xEE1A1A2E))
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()

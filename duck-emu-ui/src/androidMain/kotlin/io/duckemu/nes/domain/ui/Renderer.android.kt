@@ -79,6 +79,12 @@ actual class Renderer {
         return inpi
     }
 
+    actual fun fillSilence() {
+        if (line == null) return
+        val silence = ByteArray(sndi.sample * (sndi.bps / 8) * sndi.ch)
+        line.write(silence, 0, silence.size)
+    }
+
     companion object {
         private const val SCREEN_WIDTH = 256
         private const val SCREEN_HEIGHT = 240

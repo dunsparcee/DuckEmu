@@ -33,14 +33,11 @@ class Cpu(private val nes: Nes) {
         return regPC++
     }
 
-    // TODO: penalty of carry
     private fun abs(): Short {
         regPC = (regPC + 2).toShort()
         return read16(oprPC)
     }
 
-    // private short abxi(){ regPC+=2; return
-    // read16((short)(read16(oprPC)+(regX&0xff))); }
     private fun abx(): Short {
         regPC = (regPC + 2).toShort()
         return (read16(oprPC) + (regX.toInt() and 0xff)).toShort()
@@ -72,7 +69,6 @@ class Cpu(private val nes: Nes) {
         return ((read8(regPC++) + (regY.toInt() and 0xff)) and 0xff).toShort()
     }
 
-    // private short zpi(){ return read16((short)(read8(regPC++)&0xff)); }
     private fun zpiy(): Short {
         return (read16((read8(regPC++).toInt() and 0xff).toShort()) + (regY.toInt() and 0xff)).toShort()
     }
@@ -110,8 +106,6 @@ class Cpu(private val nes: Nes) {
         cFlag = (dat.toInt() and 1).toByte()
     }
 
-    // ops
-    // TODO : decimal support
     private fun adc(cycle: Int, adr: Short) {
         val s = read8(adr)
         val t = (regA.toInt() and 0xff) + (s.toInt() and 0xff) + (cFlag.toInt() and 0xff)
@@ -126,7 +120,6 @@ class Cpu(private val nes: Nes) {
         rest -= cycle
     }
 
-    // TODO : decimal support
     private fun sbc(cycle: Int, adr: Short) {
         val s = read8(adr)
         val t = (regA.toInt() and 0xff) - (s.toInt() and 0xff) - (if (cFlag.toInt() != 0) 0 else 1)
@@ -616,7 +609,6 @@ class Cpu(private val nes: Nes) {
     }
 
     fun setNmi(b: Boolean) {
-        // edge sensitive
         if (!nmiLine && b) execIrq(IrqType.NMI)
         nmiLine = b
     }

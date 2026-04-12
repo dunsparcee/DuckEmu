@@ -10,7 +10,7 @@ actual object GamepadController {
     }
 
     actual fun findGamepadConnected(): Map<Int, String> {
-        TODO("Not yet implemented")
+        return mapOf()
     }
 
     actual fun stopListening(port: Int) {
