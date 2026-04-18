@@ -48,4 +48,26 @@ sealed class ControllerTheme {
         val backgroundColor get() = Color(backgroundColorArgb)
         val buttonColor get() = Color(buttonColorArgb)
     }
+
+    @Serializable
+    @SerialName("sms")
+    data class SMS(
+        override val backgroundColorArgb: Int = 0xFF2A2A2A.toInt(),
+        override val buttonColorArgb: Int = 0xFFE60012.toInt(),
+        override val backgroundAlpha: Float = 1f
+    ) : ControllerTheme() {
+        val backgroundColor get() = Color(backgroundColorArgb)
+        val buttonColor get() = Color(buttonColorArgb)
+    }
+
+    @Serializable
+    @SerialName("gg")
+    data class GG(
+        override val backgroundColorArgb: Int = 0xFF1A1A1A.toInt(),
+        override val buttonColorArgb: Int = 0xFFE60012.toInt(),
+        override val backgroundAlpha: Float = 1f
+    ) : ControllerTheme() {
+        val backgroundColor get() = Color(backgroundColorArgb)
+        val buttonColor get() = Color(buttonColorArgb)
+    }
 }

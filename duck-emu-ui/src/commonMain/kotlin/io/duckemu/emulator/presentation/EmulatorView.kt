@@ -391,6 +391,8 @@ fun SelectTheme(
                 val (name, description) = when (theme) {
                     is ControllerTheme.GBC -> "Game Boy Color" to "Classic handheld layout"
                     is ControllerTheme.NES -> "Nintendo Entertainment System" to "Retro horizontal layout"
+                    is ControllerTheme.SMS -> "Sega Master System" to "Retro rectangular layout"
+                    is ControllerTheme.GG -> "Game Gear" to "Portable classic layout"
                 }
 
                 OutlinedCard(

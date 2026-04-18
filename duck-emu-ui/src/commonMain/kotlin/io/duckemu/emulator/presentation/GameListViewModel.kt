@@ -20,7 +20,7 @@ class GameLibraryViewModel(
     private val config: ConfigRepository? = null
 ) : ViewModel() {
 
-    private val _console = MutableStateFlow(listOf("gb", "gbc", "gba", "nes"))
+    private val _console = MutableStateFlow(listOf("gb", "gbc", "gba", "nes", "sms", "gg"))
     val console: StateFlow<List<String>> = _console.asStateFlow()
 
     private val _gamesByConsole = MutableStateFlow<Map<String, List<Game>>>(emptyMap())

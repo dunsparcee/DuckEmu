@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -54,6 +53,8 @@ import io.duckemu.gbc.presentation.emulator.GameBoyViewModel
 import io.duckemu.gbc.presentation.emulator.GbcPurple
 import io.duckemu.nes.presentation.NesSkin
 import io.duckemu.nes.presentation.NesViewModel
+import io.duckemu.sms.presentation.emulator.SMSSkin
+import io.duckemu.sms.presentation.emulator.SMSViewModel
 import io.github.compose_keyhandler.KeyHandlerHost
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
@@ -78,7 +79,9 @@ object MainViewModel {
             mapOf(
                 "gb" to ConsoleEntry(GameBoyViewModel) { GameBoySkin(GameBoyViewModel) },
                 "gbc" to ConsoleEntry(GameBoyViewModel) { GameBoySkin(GameBoyViewModel) },
-                "nes" to ConsoleEntry(NesViewModel) { NesSkin(NesViewModel) }
+                "nes" to ConsoleEntry(NesViewModel) { NesSkin(NesViewModel) },
+                "sms" to ConsoleEntry(SMSViewModel) { SMSSkin(SMSViewModel) },
+                "gg" to ConsoleEntry(SMSViewModel) { SMSSkin(SMSViewModel) }
             )
         }
 
